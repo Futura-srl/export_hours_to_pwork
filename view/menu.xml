@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<odoo>
+    <!-- MENU ROOT -->
+
+
+
+    <!-- MENU PRIMO LIVELLO -->
+
+
+    <!-- MENU ACTION -->
+
+
+        <menuitem id="fleet_fuel_company_menu_action"
+    action="fleet_fuel_driver"
+    parent="carburante.fleet_fuel_menu_category"
+    name="Fuel driver"/>
+
+</odoo>
