@@ -1,0 +1,67 @@
+<odoo>
+
+    <record model="ir.ui.view" id="gtms_trip_form_inherit_2">
+        <field name="name">gtms.trip</field>
+        <field name="model">gtms.trip</field>
+        <field name="inherit_id" ref="gtms.gtms_trip_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='state']" position="replace">
+                <field name="state" widget="statusbar"
+                           statusbar_visible="draft,ready,planning,partially,planned,running,done,cancel,checked"/>
+            </xpath>
+            <xpath expr="//field[@name='trip_end_from_survey']" position="after">
+                <field name="drivers_payment" attrs="{'readonly': [('state', 'in', ['checked'])]}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="trip_form_view_inherit_2">
+        <field name="name">gtms.trip</field>
+        <field name="model">gtms.trip</field>
+        <field name="inherit_id" ref="gtms_inspection_survey.trip_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='trip_start_from_survey']" position="replace">
+                <field name="trip_start_from_survey" attrs="{'readonly': [('state', '=', 'checked')]}"/>
+            </xpath>
+            <xpath expr="//field[@name='trip_end_from_survey']" position="replace">
+                <field name="trip_end_from_survey" attrs="{'readonly': [('state', '=', 'checked')]}"/>
+            </xpath>
+            <!-- <xpath expr="//field[@name='source_document']" position="replace">
+                <field name="source_document" attrs="{'readonly': [('is_readonly', '=', True)]}"/>
+            </xpath> -->
+            <xpath expr="//field[@name='is_trip']" position="replace">
+                <field name="is_trip" attrs="{'readonly': ['|',('is_readonly', '=', True),('state', 'in', ['done', 'cancel', 'checked'])]}"/>
+            </xpath>
+            <!-- <xpath expr="//field[@name='external_identifier']" position="replace">
+                <field name="external_identifier" attrs="{'readonly': [('is_readonly', '=', True)]}"/>
+            </xpath> -->
+            <xpath expr="//field[@name='is_transport']" position="replace">
+                <field name="is_transport" attrs="{'readonly': [('is_readonly', '=', True),('state', 'in', ['done', 'cancel', 'checked'])]}"/>
+            </xpath>
+            <xpath expr="//field[@name='company_ids']" position="replace">
+                <field name="company_ids" widget="many2many_tags" attrs="{'readonly': [('is_readonly', '=', True),('state', 'in', ['done', 'cancel', 'checked'])]}"/>
+            </xpath>
+            <xpath expr="//field[@name='volume_expected']" position="replace">
+                <field name="volume_expected" attrs="{'readonly': [('is_readonly', '=', True)]}"/>
+            </xpath>
+            <xpath expr="//field[@name='weight_expected']" position="replace">
+                <field name="weight_expected" attrs="{'readonly': [('is_readonly', '=', True)]}"/>
+            </xpath>
+            <xpath expr="//field[@name='distance_expected']" position="replace">
+                <field name="distance_expected" attrs="{'readonly': [('is_readonly', '=', True)]}"/>
+            </xpath>
+            <!-- <xpath expr="//field[@name='ort']" position="replace">
+                <field name="ort" attrs="{'readonly': [('is_readonly', '=', [('state', 'in' ['done','cancel','checked'])])]}"/>
+            </xpath> -->
+            <!-- <xpath expr="//field[@name='return_trip_id']" position="replace">
+                <field name="return_trip_id" attrs="{'invisible': [('ort', '==', 'rt')], 'readonly': [('is_readonly', '=', [('state', 'in' ['done','cancel','checked'])])]}"/>
+            </xpath>
+            <xpath expr="//field[@name='outward_trip_id']" position="replace">
+                <field name="outward_trip_id" attrs="{'invisible': [('ort', '==', 'rt')], 'readonly': [('is_readonly', '=', [('state', 'in' ['done','cancel','checked'])])]}"/>
+            </xpath> -->
+        </field>
+    </record>
+
+    
+    
+</odoo>
