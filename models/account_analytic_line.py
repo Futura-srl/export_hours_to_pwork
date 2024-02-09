@@ -24,6 +24,7 @@ class AccountAnalyticLine(models.Model):
     pwork = fields.Boolean(default=False, readonly=True)
     unit_amount = fields.Float(string="Hours Spent")
 
+    @api.model
     def create(self,values):
         res = super(AccountAnalyticLine, self).create(values)
         if res.datetime_stop != False and res.datetime_start != False:
