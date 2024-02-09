@@ -89,7 +89,7 @@ class Trip(models.Model):
             work_times = self.env['account.analytic.line'].search([('gtms_id', '=', record.id)])
             
             # Controllo se ci sono orari già convalidati
-            if any(work_time.validated_status == 'validated' for work_time in work_times):
+            if any(work_time.validated_status in ['validated','processed','done'] for work_time in work_times):
                 raise ValidationError(_("Il viaggio contiene degli orari già convalidati su Pwork"))
 
             # Rimuovo gli orari dal timesheet
@@ -215,7 +215,7 @@ class Trip(models.Model):
                                 'employee_id': employee_id,
                                 'datetime_start': start_datetime,
                                 'datetime_stop': end_datetime,
-                                # 'unit_amount': working_seconds,
+                                'unit_amount': working_seconds,
                                 'name': trip,
                                 'gtms_id': id,
                             })

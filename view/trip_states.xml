@@ -29,7 +29,7 @@
         <field name="name">Checked</field>
         <field name="model_id" ref="gtms.model_gtms_trip"/>
         <field name="binding_model_id" ref="gtms.model_gtms_trip"/>
-        <field name="groups_id" eval="[(4, ref('fleet.fleet_group_manager')),(4, ref('__export__.res_groups_116_a699eeaa'))]"/>
+        <field name="groups_id" eval="[(4, ref('fleet.fleet_group_manager')),(4, ref('__export__.res_groups_116_5d6ba1ab'))]"/>
         <field name="state">code</field>
         <field name="code">records.checked()</field>
     </record>
