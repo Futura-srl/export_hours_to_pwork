@@ -1,5 +1,5 @@
 from odoo import api, fields, models, http, _, Command
-import logging, datetime, requests, json
+import logging, datetime, requests, json, pytz
 import xml.etree.ElementTree as ET
 from odoo.exceptions import UserError, ValidationError
 
@@ -44,16 +44,17 @@ class AccountAnalyticLine(models.Model):
                 line.validated_status = 'validated'
 
     def upload_to_pwork(self):
+        tz = pytz.timezone('Europe/Rome')  # E.g., 'Europe/Rome'
         for record in self:
             # if record.validated_status == 'processing' or record.validated_status == 'error':
-            data_e = record.datetime_start.strftime("%d/%m/%Y")
-            ore_e = record.datetime_start.strftime("%H")
-            minuti_e = record.datetime_start.strftime("%M")
-            secondi_e = record.datetime_start.strftime("%S")
-            data_u = record.datetime_stop.strftime("%d/%m/%Y")
-            ore_u = record.datetime_stop.strftime("%H")
-            minuti_u = record.datetime_stop.strftime("%M")
-            secondi_u = record.datetime_stop.strftime("%S")
+            data_e = record.datetime_start.astimezone(tz).strftime("%d/%m/%Y")
+            ore_e = record.datetime_start.astimezone(tz).strftime("%H")
+            minuti_e = record.datetime_start.astimezone(tz).strftime("%M")
+            secondi_e = record.datetime_start.astimezone(tz).strftime("%S")
+            data_u = record.datetime_stop.astimezone(tz).strftime("%d/%m/%Y")
+            ore_u = record.datetime_stop.astimezone(tz).strftime("%H")
+            minuti_u = record.datetime_stop.astimezone(tz).strftime("%M")
+            secondi_u = record.datetime_stop.astimezone(tz).strftime("%S")
             
             # Recupero il badge del dipendente
             # badges = self.env['hr.badgespwork'].search_read([('active', '=', True), ('hr_id', '=', record.employee_id.id)],limit=1)
