@@ -69,8 +69,7 @@ class AccountAnalyticLine(models.Model):
             _logger.info(f"Stampo ore_u {ore_u}")
             _logger.info(f"Stampo minuti_u {minuti_u}")
             _logger.info(f"Stampo secondi_u {secondi_u}")
-            badge = ''
-            response, element, error = self.env['account.analytic.line.pwork'].send_timesheet(badge,data_e,ore_e,minuti_e,secondi_e,data_u,ore_u,minuti_u,secondi_u)
+            response, element, error = self.env['account.analytic.line.pwork'].send_timesheet(badge['name'],data_e,ore_e,minuti_e,secondi_e,data_u,ore_u,minuti_u,secondi_u)
             record.pwork = response
             record.error_txt = element
             for timesheet in record.analytic_ids:
@@ -87,7 +86,6 @@ class AccountAnalyticLine(models.Model):
         pwork_session = config_obj.sudo().get_param('pwork_session')
         pwork_cod_azienda = config_obj.sudo().get_param('pwork_cod_azienda')
         pwork_token = config_obj.sudo().get_param('pwork_token')
-        badge = '9999999991'
         _logger.info(badge)
 
         _logger.info("Avvio connessione")
