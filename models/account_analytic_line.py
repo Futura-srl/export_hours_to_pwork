@@ -24,6 +24,13 @@ class AccountAnalyticLine(models.Model):
     pwork = fields.Boolean(default=False, readonly=True)
     unit_amount = fields.Float(string="Hours Spent")
 
+    def create(self,values):
+        res = super(AccountAnalyticLine, self).create(values)
+        if res.datetime_stop != False and res.datetime_start != False:
+            work_time = res.datetime_stop - res.datetime_start
+            working_seconds = work_time.total_seconds() / 3600.0
+            res.write({'unit_amount': working_seconds})
+            
 
     @api.onchange('datetime_start', 'datetime_stop')
     def _compute_unit_amount(self):
@@ -162,3 +169,5 @@ class AccountAnalyticLine(models.Model):
                     'datetime_start': start,
                     'datetime_stop': end,
                 })
+
+  
