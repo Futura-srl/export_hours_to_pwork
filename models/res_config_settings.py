@@ -63,7 +63,7 @@ class ResConfigSettings(models.TransientModel):
             pwork_ip = data['pwork_ip']
             pwork_session = data['pwork_session']
             pwork_cod_azienda = data['pwork_cod_azienda']
-
+            _logger.info(data)
 
         _logger.info("Avvio connessione")
     

@@ -1,6 +1,7 @@
 import logging, datetime
 from odoo import api, fields, models, http, _, Command
 from odoo.exceptions import UserError, ValidationError
+from datetime import datetime as dt
 
 
 _logger = logging.getLogger(__name__)
@@ -19,11 +20,28 @@ class Trip(models.Model):
     trip_start_from_survey = fields.Datetime(states={'checked': [('readonly', False)]})
     trip_end_from_survey = fields.Datetime(states={'checked': [('readonly', False)]})
     drivers_payment = fields.Selection([('ore_pianificate','Ore pianificate'),('ore_effettive','Ore effettive')], default='ore_pianificate')
-
+    all_drivers_ids = fields.One2many('res.partner', compute="_find_all_drivers_ids")
 
     state = fields.Selection(_states_list,
                              string='Status', readonly=True, copy=False, index=True,
                              default='draft', compute='_compute_state', store=True)
+
+
+    def _find_all_drivers_ids(self):
+        for field in self:
+            drivers = []
+            for trip in self:
+                trip.all_drivers_ids = False
+            # Cerco tutti i record della tabella gtms.trip.vehicle.manager associati al viaggio
+            data = self.env['gtms.trip.vehicle.manager'].search_read([('trip_id', '=', self.id)],['driver_id','learning_driver_id'])
+            for record in data:
+                if record['driver_id'] != False:
+                    driver_1 = record['driver_id'][0]
+                    drivers.append(driver_1)
+                if record['learning_driver_id'] != False:
+                    driver_2 = record['learning_driver_id'][0]
+                    drivers.append(driver_2)
+            field.all_drivers_ids = drivers
 
 
     
@@ -83,10 +101,19 @@ class Trip(models.Model):
         for record in self:
             id = record.id
             trip = record.name
-            if record.state == 'checked':
-                raise ValidationError(_(f"Il viaggio {trip} con id {id} è già sullo stato CHECKED"))
-            if record.state != 'done':
-                raise ValidationError(_(f"Il viaggio {trip} con id {id} deve prima essere eseguito"))
+            trip_type_id = record.trip_type_id.id
+            task_id = self.env['gtms.trip.type'].search_read([('id', '=', trip_type_id)], ['task_id'])[0]['task_id'][0]
+            project_id = self.env['project.task'].search_read([('id', '=', task_id)], ['project_id'])[0]['project_id'][0]
+            
+            _logger.info(record)
+            _logger.info(record.state)
+            _logger.info(trip_type_id)
+            _logger.info(task_id)
+            _logger.info(project_id)
+            # if record.state == 'checked':
+            #     raise ValidationError(_(f"Il viaggio {trip} con id {id} è già sullo stato CHECKED"))
+            # if record.state != 'done':
+            #     raise ValidationError(_(f"Il viaggio {trip} con id {id} deve prima essere eseguito"))
             driver_id = 0
             laerning_driver_id = 0
             
@@ -156,12 +183,12 @@ class Trip(models.Model):
                     timesheet = self.env['account.analytic.line'].create(
                         {
                             'date': start_time,
-                            'project_id': 5,
-                            'task_id': 31,
+                            'project_id': project_id,
+                            'task_id': task_id,
                             'employee_id': employee_id,
                             'datetime_start': start_datetime,
                             'datetime_stop': end_datetime,
-                            'unit_amount': working_seconds,
+                            # 'unit_amount': working_seconds,
                             'name': trip,
                             'gtms_id': id,
                         })
@@ -183,14 +210,24 @@ class Trip(models.Model):
                             timesheet = self.env['account.analytic.line'].create(
                             {
                                 'date': start_time,
-                                'project_id': 5,
-                                'task_id': 31,
+                                'project_id': project_id,
+                                'task_id': task_id,
                                 'employee_id': employee_id,
                                 'datetime_start': start_datetime,
                                 'datetime_stop': end_datetime,
-                                'unit_amount': working_seconds,
+                                # 'unit_amount': working_seconds,
                                 'name': trip,
                                 'gtms_id': id,
                             })
                             self.check = True
                     _logger.info("FINITO")
+
+
+    def test(self):
+        for record in self:
+            _logger.info("CI PROVO")
+            _logger.info(record.id)
+            drivers = self.env['gtms.trip'].search_read([('id', '=', record.id)],['name','activity_calendar_event_id','drivers_payment', 'delivery_note_ids','drivers_ids'])
+            _logger.info(drivers)
+
+

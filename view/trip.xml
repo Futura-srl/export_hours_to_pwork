@@ -11,6 +11,7 @@
             </xpath>
             <xpath expr="//field[@name='trip_end_from_survey']" position="after">
                 <field name="drivers_payment" attrs="{'readonly': [('state', 'in', ['checked'])]}"/>
+                <field name="all_drivers_ids" widget="many2many_tags"/>
             </xpath>
         </field>
     </record>

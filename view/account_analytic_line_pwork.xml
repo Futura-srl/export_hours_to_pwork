@@ -1,0 +1,66 @@
+<odoo>
+    <record id="action_account_analytic_line_pwork" model="ir.actions.act_window">
+        <field name="name">All Timesheets Pwork</field>
+        <field name="res_model">account.analytic.line.pwork</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="view_mode">tree,form</field>
+        <field name="target">current</field>
+    </record>
+
+    <record model="ir.ui.view" id="account_analytic_line_pwork_tree">
+        <field name="name">All Timesheets Pwork</field>
+        <field name="model">account.analytic.line.pwork</field>
+        <field name="arch" type="xml">
+            <tree decoration-success="validated_status=='done'" decoration-danger="validated_status=='error'">
+                <field name="employee_id" readonly="1"/>
+                <field name="datetime_start"/>
+                <field name="datetime_stop"/>
+                <field name="validated_status" readonly="1"/>
+                <field name="error_txt" readonly="1"/>
+                <field name="pwork" readonly="1"/>
+                <field name="analytic_ids" readonly="1"/>
+            </tree>
+        </field>
+    </record>
+    
+    <record model="ir.ui.view" id="account_analytic_line_pwork_form">
+        <field name="name">All Timesheets Pwork</field>
+        <field name="model">account.analytic.line.pwork</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="employee_id" readonly="1"/>
+                        <field name="datetime_start"/>
+                        <field name="datetime_stop"/>
+                        <field name="validated_status" readonly="1"/>
+                        <field name="error_txt" readonly="1"/>
+                        <field name="pwork" readonly="1"/>
+                    </group>
+                    <notebook>
+                        <page string="Timesheets">
+                            <tree>
+                                <field name="analytic_ids" readonly="1"/>
+                            </tree>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <menuitem id="menu_action_account_analytic_line_pwork"
+              parent="hr_timesheet.menu_hr_time_tracking"
+              action="action_account_analytic_line_pwork"
+              name="Timesheet Pwork"/>
+
+    <record id="model_account_analytic_line_action_upload_pwork" model="ir.actions.server">
+        <field name="name">Upload to Pwork</field>
+        <field name="model_id" ref="export_hours_to_pwork.model_account_analytic_line_pwork"/>
+        <field name="binding_model_id" ref="export_hours_to_pwork.model_account_analytic_line_pwork"/>
+        <field name="groups_id" eval="[(4, ref('fleet.fleet_group_manager')),(4, ref('__export__.res_groups_137_2440cc2b'))]"/>
+        <field name="state">code</field>
+        <field name="code">records.upload_to_pwork()</field>
+    </record>
+
+</odoo>
