@@ -45,42 +45,56 @@ class Trip(models.Model):
 
 
     
+    # @api.depends('check','number_of_operations_executed', 'number_of_operation_running',
+    #              'number_of_operation_planned', 'number_operation_partially_planned', 'number_of_operations_cancelled',
+    #              'is_ready', 'number_of_operations', 'is_canceled')
+    # def _compute_state(self):
+    #     for trip in self:
+    #         if trip.number_of_operations != 0 and (trip.number_of_operations == trip.number_of_operations_executed) and trip.check == False:
+    #             trip.is_readonly = False
+    #             trip.state = 'done'
+    #             trip.check = False
+    #         elif trip.is_canceled and trip.check == False:
+    #             trip.state = 'cancel'
+    #             trip.check = False
+    #         elif not trip.is_ready and trip.check == False:
+    #             trip.state = 'draft'
+    #             trip.check = False
+    #         elif trip.number_of_operation_running > 0 or trip.number_of_operations_executed > 0 and trip.check == False:
+    #             trip.state = 'running'
+    #             trip.check = False
+    #         elif trip.number_of_operations != 0 and (trip.number_of_operations == trip.number_of_operation_planned) and trip.check == False:
+    #             trip.state = 'planned'
+    #             trip.check = False
+    #         elif trip.number_of_operation_planned > 0 and trip.check == False:
+    #             trip.state = 'partially'
+    #             trip.check = False
+    #         elif trip.number_operation_partially_planned > 0 and trip.check == False:
+    #             trip.state = 'planning'
+    #             trip.check = False
+    #         elif trip.is_ready == True and trip.check == False:
+    #             trip.state = 'ready'
+    #             trip.check = False
+    #         elif trip.check == True:
+    #             trip.state = 'checked'
+    #             trip.is_readonly = True
+    #         else:
+    #             trip.state = 'draft'
+    #             trip.check = False
+    
     @api.depends('check','number_of_operations_executed', 'number_of_operation_running',
                  'number_of_operation_planned', 'number_operation_partially_planned', 'number_of_operations_cancelled',
                  'is_ready', 'number_of_operations', 'is_canceled')
     def _compute_state(self):
+        # Chiamata al metodo originale per mantenere le funzionalità esistenti
+        super(Trip, self)._compute_state()
+
+        # Aggiungi qui le tue operazioni aggiuntive
         for trip in self:
-            if trip.number_of_operations != 0 and (trip.number_of_operations == trip.number_of_operations_executed) and trip.check == False:
-                trip.is_readonly = False
-                trip.state = 'done'
-                trip.check = False
-            elif trip.is_canceled and trip.check == False:
-                trip.state = 'cancel'
-                trip.check = False
-            elif not trip.is_ready and trip.check == False:
-                trip.state = 'draft'
-                trip.check = False
-            elif trip.number_of_operation_running > 0 or trip.number_of_operations_executed > 0 and trip.check == False:
-                trip.state = 'running'
-                trip.check = False
-            elif trip.number_of_operations != 0 and (trip.number_of_operations == trip.number_of_operation_planned) and trip.check == False:
-                trip.state = 'planned'
-                trip.check = False
-            elif trip.number_of_operation_planned > 0 and trip.check == False:
-                trip.state = 'partially'
-                trip.check = False
-            elif trip.number_operation_partially_planned > 0 and trip.check == False:
-                trip.state = 'planning'
-                trip.check = False
-            elif trip.is_ready == True and trip.check == False:
-                trip.state = 'ready'
-                trip.check = False
-            elif trip.check == True:
+            # Esempio: Se il tuo campo personalizzato è True, imposta lo stato su 'personalizzato'
+            if trip.check == True:
                 trip.state = 'checked'
                 trip.is_readonly = True
-            else:
-                trip.state = 'draft'
-                trip.check = False
 
     
     def unchecked(self):
