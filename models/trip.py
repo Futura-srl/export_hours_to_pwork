@@ -159,6 +159,24 @@ class Trip(models.Model):
                 end_datetime = record.last_stop_planned_at
                 trip_start = record.first_stop_planned_at
                 trip_end = record.last_stop_planned_at
+            elif driver_payment == "ore_macarena": # SAREBBE 'ORE MIX', PARTENZA DA ORARIO PIANIFICATO E ARRIVO DA ORARIO EFFETTIVO
+                if record.first_stop_planned_at == False or record.last_stop_planned_at == False:
+                    raise ValidationError(_(f"Il viaggio {trip} con id {id} non dispone degli orari 'Sondaggio'"))
+                start_time = record.first_stop_planned_at.date()
+                start_datetime = record.first_stop_planned_at
+                end_time = record.trip_end_from_survey.date()
+                end_datetime = record.trip_end_from_survey
+                trip_start = record.first_stop_planned_at
+                trip_end = record.trip_end_from_survey
+            elif driver_payment == "ore_macarena_inverso": # SAREBBE 'ORE MIX INVERSO', PARTENZA DA ORARIO EFFETTIVO E ARRIVO DA ORARIO PIANIFICATO
+                if record.first_stop_planned_at == False or record.last_stop_planned_at == False:
+                    raise ValidationError(_(f"Il viaggio {trip} con id {id} non dispone degli orari 'Sondaggio'"))
+                start_time = record.trip_start_from_survey.date()
+                start_datetime = record.trip_start_from_survey
+                end_time = record.last_stop_planned_at.date()
+                end_datetime = record.last_stop_planned_at
+                trip_start = record.trip_start_from_survey
+                trip_end = record.last_stop_planned_at
 
             work_time = end_datetime - start_datetime
             working_seconds = work_time.total_seconds() / 3600.0
