@@ -19,7 +19,7 @@ class Trip(models.Model):
     check = fields.Boolean(default=False)
     trip_start_from_survey = fields.Datetime(states={'checked': [('readonly', False)]})
     trip_end_from_survey = fields.Datetime(states={'checked': [('readonly', False)]})
-    drivers_payment = fields.Selection([('ore_pianificate','Ore pianificate'),('ore_effettive','Ore effettive')], default='ore_pianificate')
+    drivers_payment = fields.Selection([('ore_pianificate','Ore pianificate'),('ore_effettive','Ore effettive'),('ore_macarena','Ore Mix 1'),('ore_macarena_inverso','Ore Mix inverso')], default='ore_pianificate')
     all_drivers_ids = fields.One2many('res.partner', compute="_find_all_drivers_ids")
 
     state = fields.Selection(_states_list,
