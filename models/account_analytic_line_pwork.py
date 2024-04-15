@@ -57,10 +57,10 @@ class AccountAnalyticLine(models.Model):
             secondi_u = record.datetime_stop.astimezone(tz).strftime("%S")
             
             # Recupero il badge del dipendente
-            # badges = self.env['hr.badgespwork'].search_read([('active', '=', True), ('hr_id', '=', record.employee_id.id)],limit=1)
-            # for badge in badges:
-            #     _logger.info("Badge")
-            # _logger.info(f"Stampo badge {badge['name']}")
+            badges = self.env['hr.badgespwork'].search_read([('active', '=', True), ('hr_id', '=', record.employee_id.id)],limit=1)
+            for badge in badges:
+                _logger.info("Badge")
+            _logger.info(f"Stampo badge {badge['name']}")
             _logger.info(f"Stampo data_e {data_e}")
             _logger.info(f"Stampo ore_e {ore_e}")
             _logger.info(f"Stampo minuti_e {minuti_e}")
