@@ -145,11 +145,14 @@ class AccountAnalyticLine(models.Model):
                     if combined_shifts:
                         # Ottieni l'ultimo turno combinato
                         last_combined_start, last_combined_end, last_combined_employee, last_combined_analytic = combined_shifts[-1]
-        
+                    
                         # Se l'ultimo turno combinato finisce quando inizia il turno attuale, unisci i due turni
-                        if last_combined_end == start:
-                            combined_shifts[-1] = (last_combined_start, end, employee_id, [analytic_id,last_combined_analytic[0]])
-                            combined_analytics.append(analytic_id)
+                        if last_combined_end.strftime("%m/%d/%Y, %H:%M") == start.strftime("%m/%d/%Y, %H:%M") or last_combined_end.strftime("%m/%d/%Y, %H:%M") > start.strftime("%m/%d/%Y, %H:%M"):
+                            # Aggiorna l'ultimo turno combinato con la nuova ora di fine e aggiungi l'ID analitico corrente alla lista degli ID analitici
+                            combined_shifts[-1] = (last_combined_start, end, employee_id, last_combined_analytic + [analytic_id])
+                            # Assicurati di aggiungere l'ID analitico corrente alla lista degli analytics combinati
+                            if analytic_id not in last_combined_analytic:
+                                combined_analytics.append(analytic_id)
                         else:
                             # Altrimenti, aggiungi il turno attuale
                             combined_shifts.append((start, end, employee_id, [analytic_id]))
@@ -171,4 +174,7 @@ class AccountAnalyticLine(models.Model):
                     'datetime_stop': end,
                 })
 
-  
+
+
+
+
