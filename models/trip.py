@@ -113,6 +113,8 @@ class Trip(models.Model):
     
     def checked(self):
         for record in self:
+            if record.state == 'checked':
+                continue
             id = record.id
             trip = record.name
             trip_type_id = record.trip_type_id.id
