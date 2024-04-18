@@ -41,7 +41,7 @@ class Trip(models.Model):
                 if record['learning_driver_id'] != False:
                     driver_2 = record['learning_driver_id'][0]
                     drivers.append(driver_2)
-            field.all_drivers_ids = drivers
+            field.all_drivers_ids = list(set(drivers))
 
 
     
