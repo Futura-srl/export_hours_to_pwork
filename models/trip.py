@@ -185,7 +185,7 @@ class Trip(models.Model):
             
             # Cerco gli autisti che hanno guidato durante il viaggio
             drivers = self.env['gtms.trip.vehicle.manager'].search_read([('trip_id', '=', id)],['driver_id', 'learning_driver_id'])
-            drivers = list({tuple(driver.items()) for driver in drivers})
+            # drivers = list({tuple(driver.items()) for driver in drivers})
             for driver in drivers:
                 driver_id = driver['driver_id'][0]
                 if driver['learning_driver_id']:

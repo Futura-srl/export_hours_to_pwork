@@ -1,12 +1,13 @@
 <odoo>
 
-     <record model="ir.ui.view" id="gtms_trip_type_form_inherit_2">
+    <record model="ir.ui.view" id="gtms_trip_type_form_inherit_2">
         <field name="name">gtms.trip.type</field>
         <field name="model">gtms.trip.type</field>
         <field name="inherit_id" ref="gtms.view_form_gtms_trip_type"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='company_id']" position="after">
                 <field name="task_id"/>
+                <field name="causale_pwork"/>
             </xpath>
         </field>
     </record>

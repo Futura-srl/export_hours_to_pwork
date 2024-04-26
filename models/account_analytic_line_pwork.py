@@ -20,16 +20,27 @@ class AccountAnalyticLine(models.Model):
     error_txt = fields.Text(string='Response')
     pwork = fields.Boolean(default=False)
     unit_amount = fields.Float(string="Hours Spent", compute="_compute_unit_amount")
+    causale_gtms_pwork = fields.Char(string="Causale gtms Pwork", compute="_compute_causale_gtms_pwork")
 
 
+    
+    @api.depends('analytic_ids')
+    def _compute_causale_gtms_pwork(self):
+        for record in self:
+            for r in record.analytic_ids: 
+                record.causale_gtms_pwork = str(r.gtms_id.trip_type_id.causale_pwork)
+        
+
+    
     @api.onchange('datetime_start', 'datetime_stop')
     def _compute_unit_amount(self):
-        _logger.info(line.unit_amount)        
-        if line.datetime_start != False and line.datetime_stop != False:
-            work_time = line.datetime_stop - line.datetime_start
-            working_seconds = work_time.total_seconds() / 3600.0
-            line.unit_amount = working_seconds
-            _logger.info(line.unit_amount)
+        _logger.info(line.unit_amount)
+        for line in self:        
+            if line.datetime_start != False and line.datetime_stop != False:
+                work_time = line.datetime_stop - line.datetime_start
+                working_seconds = work_time.total_seconds() / 3600.0
+                line.unit_amount = working_seconds
+                _logger.info(line.unit_amount)
 
 
     
@@ -55,6 +66,7 @@ class AccountAnalyticLine(models.Model):
             ore_u = record.datetime_stop.astimezone(tz).strftime("%H")
             minuti_u = record.datetime_stop.astimezone(tz).strftime("%M")
             secondi_u = record.datetime_stop.astimezone(tz).strftime("%S")
+            causale_pwork = record.causale_gtms_pwork
             
             # Recupero il badge del dipendente
             badges = self.env['hr.badgespwork'].search_read([('active', '=', True), ('hr_id', '=', record.employee_id.id)],limit=1)
@@ -69,7 +81,7 @@ class AccountAnalyticLine(models.Model):
             _logger.info(f"Stampo ore_u {ore_u}")
             _logger.info(f"Stampo minuti_u {minuti_u}")
             _logger.info(f"Stampo secondi_u {secondi_u}")
-            response, element, error = self.env['account.analytic.line.pwork'].send_timesheet(badge['name'],data_e,ore_e,minuti_e,secondi_e,data_u,ore_u,minuti_u,secondi_u)
+            response, element, error = self.env['account.analytic.line.pwork'].send_timesheet(badge['name'],data_e,ore_e,minuti_e,secondi_e,causale_pwork,data_u,ore_u,minuti_u,secondi_u)
             record.pwork = response
             record.error_txt = element
             for timesheet in record.analytic_ids:
@@ -78,7 +90,7 @@ class AccountAnalyticLine(models.Model):
                 timesheet_record.write({'pwork': response, 'error_txt': element, 'error': error})
 
 
-    def send_timesheet(self,badge,data_e,ore_e,minuti_e,secondi_e,data_u,ore_u,minuti_u,secondi_u):
+    def send_timesheet(self,badge,data_e,ore_e,minuti_e,secondi_e,causale_pwork,data_u,ore_u,minuti_u,secondi_u):
         config_obj = self.env['ir.config_parameter']
         pwork_username = config_obj.sudo().get_param('pwork_username')
         pwork_password = config_obj.sudo().get_param('pwork_password')
@@ -115,6 +127,7 @@ class AccountAnalyticLine(models.Model):
                         <DataAuto>0</DataAuto>
                         <OraAuto>0</OraAuto>
                         <PCode>0200</PCode>
+                        <Causale>{}</Causale>
                     </RequestTimbra>
                     <RequestTimbra>
                         <Badge>{}</Badge>
@@ -127,12 +140,13 @@ class AccountAnalyticLine(models.Model):
                         <DataAuto>0</DataAuto>
                         <OraAuto>0</OraAuto>
                         <PCode>0200</PCode>
+                        <Causale>{}</Causale>
                     </RequestTimbra>
                 </Params>
                 <ReturnType>FormatJson</ReturnType>
             </setTimbra>
         </soap12:Body>
-    </soap12:Envelope>'''.format(pwork_token,pwork_cod_azienda,badge,data_e,ore_e,minuti_e,secondi_e,badge,data_u,ore_u,minuti_u,secondi_u)
+    </soap12:Envelope>'''.format(pwork_token,pwork_cod_azienda,badge,data_e,ore_e,minuti_e,secondi_e,causale_pwork,badge,data_u,ore_u,minuti_u,secondi_u,causale_pwork)
 
         _logger.info(payload)
         _logger.info("Invio della richiesta HTTP POST")

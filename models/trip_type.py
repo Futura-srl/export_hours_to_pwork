@@ -12,3 +12,4 @@ class Trip(models.Model):
     _inherit = "gtms.trip.type"
 
     task_id = fields.Many2one('project.task')
+    causale_pwork = fields.Char()
