@@ -66,7 +66,7 @@ class AccountAnalyticLine(models.Model):
                     record.processed = True
                 else:
                     raise ValidationError(_(f"Il timesheet con id {record.id} deve essere prima sullo stato 'Validato'"))
-        self.upload_to_pwork_table()
+        self.upload_to_pwork_table_2()
 
     def upload_to_pwork(self):
         for record in self:
@@ -176,5 +176,91 @@ class AccountAnalyticLine(models.Model):
 
 
 
+    # Rifaccio la funzione upload_to_pwork_table
+    # prendo gli id dei record selezionati e li utilizzo per cercare gli stessi timesheet ma solo messi in ordine di esecuzione:
+    # raggruppo tutti i timesheet per dipendente e se vi sono piu turni che finiscono e iniziano nello stesso momento creo un timesheet unico
+    
+    def upload_to_pwork_table_2(self):
+        shifts_data = []
+        shifts_data_unique = []
+        timesheet_list = []
+        employee_list = []
+        for record in self:
+            timesheet_list.append(record.id)
+        for employee in self:
+            employee_list.append(employee.employee_id.id)
+
+        employee_list = set(employee_list)
+
+        _logger.info(employee_list)
+        _logger.info(timesheet_list)
+
+        # Per ogni dipendente cerco gli id dei timesheet n ordine cronologico
+        for employee in employee_list:
+            start = ''
+            stop = ''
+            time_id = []
+            timesheets = self.env['account.analytic.line'].search([('id', 'in', timesheet_list), ('employee_id', '=', employee), ('validated', '=', True)], order="datetime_start asc") # ricordarsi di aggiungere nuovamente validated = True
+            i = 0
+            for timesheet in timesheets:
+                if i > 0:
+                    if timesheet.datetime_start.strftime("%m/%d/%Y %H:%M") != timesheets[i-1].datetime_stop.strftime("%m/%d/%Y %H:%M"):
+                        _logger.info("Posso resettare lo start in quanto questo è il primo turno")
+                        start = timesheet.datetime_start
+                        stop = ''
+                        time_id = []
+                        _logger.info("--------------------------------")
+                        time_id.append(timesheet.id)
+                _logger.info(f"Stampo id timesheet {timesheet.id}")
+                _logger.info(len(timesheets))
+                
+                if i == 0:
+                    _logger.info("--------------------------------")
+                    _logger.info("Primo timesheet del dipendente")
+                    start = timesheet.datetime_start
+                    time_id.append(timesheet.id)
+                    _logger.info(f"Dipendente {timesheet.employee_id.name}")
+
+                _logger.info(f"Indice timesheet {i}")
+                
+                _logger.info(f"turno corrente {timesheet.datetime_start} - {timesheet.datetime_stop}")
+                
+                if (i + 1) < len(timesheets):
+                    _logger.info(f"turno successivo {timesheets[i+1].datetime_start} - {timesheets[i+1].datetime_stop}")
+                    # _logger.info(f"timesheet tramite indice {timesheets[i+1].datetime_start}")
+                    if timesheet.datetime_stop.strftime("%m/%d/%Y %H:%M") == timesheets[i+1].datetime_start.strftime("%m/%d/%Y %H:%M"):
+                        _logger.info(f"L'orario {timesheet.datetime_stop.strftime('%m/%d/%Y %H:%M')} combacia con {timesheets[i+1].datetime_start.strftime('%m/%d/%Y %H:%M')}")
+                        time_id.append(timesheets[i+1].id)
+                    else:
+                        _logger.info(f"L'orario {timesheet.datetime_stop.strftime('%m/%d/%Y %H:%M')} NON combacia con {timesheets[i+1].datetime_start.strftime('%m/%d/%Y %H:%M')}")
+                        _logger.info(f"Queste sono i timesheet che saranano uniti\n{time_id}")
+                        
+                        stop = timesheet.datetime_stop
+                        _logger.info("CARICOOOOOOOO")
+                        _logger.info(f" Orari partenza {start} - orario arrivo {stop} - id_timesheet {time_id}")
+                        self.create_timesheets(start,stop,employee,time_id)
+                        
+                # Ultimo timesheet del dipendente
+                if i == len(timesheets) - 1:
+                    stop = timesheet.datetime_stop
+                    _logger.info(f"Ultimo carico")
+                    _logger.info(f"Risultato {time_id}")
+                    _logger.info("CARICOOOOOOOO")
+                    self.create_timesheets(start,stop,employee,time_id)
+                    _logger.info(f" Orari partenza {start} - orario arrivo {stop} - id_timesheet {time_id}")
+                    
+                    
+                else:
+                    _logger.info("Ultimo timesheet del dipendente")
+                _logger.info(f"Stato attuale time_id {time_id}")
+                i = i + 1
 
 
+    def create_timesheets(self,start,stop,employee,time_id):
+        self.env['account.analytic.line.pwork'].create({
+                    'employee_id': employee,
+                    'validated_status': 'validated',
+                    'analytic_ids': time_id,
+                    'datetime_start': start,
+                    'datetime_stop': stop,
+                })

@@ -58,5 +58,14 @@
         <field name="code">records.check_remnants_trips()</field>
     </record>
     
+    <record id="model_gtms_trip_action_check_remnants_trips" model="ir.actions.server">
+        <field name="name">TEST 2</field>
+        <field name="model_id" ref="analytic.model_account_analytic_line"/>
+        <field name="binding_model_id" ref="analytic.model_account_analytic_line"/>
+        <field name="groups_id" eval="[(4, ref('__export__.res_groups_137_2440cc2b'))]"/>
+        <field name="state">code</field>
+        <field name="code">records.upload_to_pwork_table_2()</field>
+    </record>
+    
     
 </odoo>

@@ -24,12 +24,13 @@ class AccountAnalyticLine(models.Model):
 
 
     
-    @api.depends('analytic_ids')
+    # @api.depends('analytic_ids')
     def _compute_causale_gtms_pwork(self):
         for record in self:
-            for r in record.analytic_ids: 
+            record.causale_gtms_pwork = "False"
+            for r in record.analytic_ids:
                 record.causale_gtms_pwork = str(r.gtms_id.trip_type_id.causale_pwork)
-        
+
 
     
     @api.onchange('datetime_start', 'datetime_stop')
@@ -140,13 +141,13 @@ class AccountAnalyticLine(models.Model):
                         <DataAuto>0</DataAuto>
                         <OraAuto>0</OraAuto>
                         <PCode>0200</PCode>
-                        <Causale>{}</Causale>
+                        <Causale>000000</Causale>
                     </RequestTimbra>
                 </Params>
                 <ReturnType>FormatJson</ReturnType>
             </setTimbra>
         </soap12:Body>
-    </soap12:Envelope>'''.format(pwork_token,pwork_cod_azienda,badge,data_e,ore_e,minuti_e,secondi_e,causale_pwork,badge,data_u,ore_u,minuti_u,secondi_u,causale_pwork)
+    </soap12:Envelope>'''.format(pwork_token,pwork_cod_azienda,badge,data_e,ore_e,minuti_e,secondi_e,causale_pwork,badge,data_u,ore_u,minuti_u,secondi_u)
 
         _logger.info(payload)
         _logger.info("Invio della richiesta HTTP POST")

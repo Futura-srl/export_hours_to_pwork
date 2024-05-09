@@ -63,6 +63,38 @@
         </field>
     </record>
 
+    <record id="view_trip_transport_filter_v2" model="ir.ui.view">
+        <field name="name">gtms.trip.list.filtered.v2</field>
+        <field name="model">gtms.trip</field>
+        <field name="inherit_id" ref="gtms.view_trip_transport_filter"/>
+        <field name="arch" type="xml">
+           <xpath expr="//filter[@name='filter_late']" position="replace">
+                <filter name="filter_late" string="Late"
+                    domain="[('state', '!=', 'done'), ('state', '!=', 'draft'),('state', '!=', 'checked'),('state', '!=', 'cancel'), ('last_stop_planned_at', '&lt;', (context_today()-datetime.timedelta(weeks=1)).strftime('%Y-%m-%d'))]"/>
+            </xpath>
+           <xpath expr="//filter[@name='filter_ready']" position="replace">
+                <filter name="filter_ready" string="Ready"
+                    domain="[('state', '!=', 'draft'),('state', '!=', 'done'),('state', '!=', 'cancel'),('state', '!=', 'checked')]"/>
+            </xpath>
+        </field>
+    </record>
+
     
+
+    <record id="gtms_trip_tree_inherit" model="ir.ui.view">
+        <field name="name">gtms.trip.tree</field>
+        <field name="model">gtms.trip</field>
+        <field name="inherit_id" ref="gtms.gtms_trip_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='working_hours']" position="after">
+                <field name="trip_start_from_survey"/>
+                <field name="trip_end_from_survey"/>
+                <field name="drivers_payment"/>
+            </xpath>
+        </field>
+    </record>
+
+
+
     
 </odoo>

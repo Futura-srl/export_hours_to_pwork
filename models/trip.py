@@ -259,10 +259,11 @@ class Trip(models.Model):
 
 
     def test(self):
-        for record in self:
-            _logger.info("CI PROVO")
-            _logger.info(record.id)
-            drivers = self.env['gtms.trip'].search_read([('id', '=', record.id)],['name','activity_calendar_event_id','drivers_payment', 'delivery_note_ids','drivers_ids'])
-            _logger.info(drivers)
+        _logger.info(self)
+        # for record in self:
+        #     _logger.info("CI PROVO")
+        #     _logger.info(record.id)
+        #     drivers = self.env['gtms.trip'].search_read([('id', '=', record.id)],['name','activity_calendar_event_id','drivers_payment', 'delivery_note_ids','drivers_ids'])
+        #     _logger.info(drivers)
 
 
