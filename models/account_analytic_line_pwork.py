@@ -141,7 +141,7 @@ class AccountAnalyticLine(models.Model):
                         <DataAuto>0</DataAuto>
                         <OraAuto>0</OraAuto>
                         <PCode>0200</PCode>
-                        <Causale>000000</Causale>
+                        <Causale>0000</Causale>
                     </RequestTimbra>
                 </Params>
                 <ReturnType>FormatJson</ReturnType>
