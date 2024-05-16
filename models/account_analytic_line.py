@@ -231,9 +231,9 @@ class AccountAnalyticLine(models.Model):
                     if timesheet.datetime_stop.strftime("%m/%d/%Y %H:%M") == timesheets[i+1].datetime_start.strftime("%m/%d/%Y %H:%M"):
                         _logger.info(f"L'orario {timesheet.datetime_stop.strftime('%m/%d/%Y %H:%M')} combacia con {timesheets[i+1].datetime_start.strftime('%m/%d/%Y %H:%M')}")
                         time_id.append(timesheets[i+1].id)
-                    elif timesheet.datetime_stop.strftime("%m/%d/%Y %H:%M") > timesheets[i+1].datetime_start.strftime("%m/%d/%Y %H:%M"):
-                        _logger.info(f"L'orario {timesheet.datetime_stop.strftime('%m/%d/%Y %H:%M')} è successivo dell'orario {timesheets[i+1].datetime_start.strftime('%m/%d/%Y %H:%M')}")
-                        time_id.append(timesheets[i+1].id)
+                    # elif timesheet.datetime_stop.strftime("%m/%d/%Y %H:%M") > timesheets[i+1].datetime_start.strftime("%m/%d/%Y %H:%M"):
+                    #     _logger.info(f"L'orario {timesheet.datetime_stop.strftime('%m/%d/%Y %H:%M')} è successivo dell'orario {timesheets[i+1].datetime_start.strftime('%m/%d/%Y %H:%M')}")
+                    #     time_id.append(timesheets[i+1].id)
                     else:
                         _logger.info(f"L'orario {timesheet.datetime_stop.strftime('%m/%d/%Y %H:%M')} NON combacia con {timesheets[i+1].datetime_start.strftime('%m/%d/%Y %H:%M')}")
                         _logger.info(f"Queste sono i timesheet che saranano uniti\n{time_id}")
