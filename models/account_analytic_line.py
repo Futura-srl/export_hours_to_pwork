@@ -228,7 +228,7 @@ class AccountAnalyticLine(models.Model):
                 if (i + 1) < len(timesheets):
                     _logger.info(f"turno successivo {timesheets[i+1].datetime_start} - {timesheets[i+1].datetime_stop}")
                     # _logger.info(f"timesheet tramite indice {timesheets[i+1].datetime_start}")
-                    if timesheet.datetime_stop.strftime("%m/%d/%Y %H:%M") == timesheets[i+1].datetime_start.strftime("%m/%d/%Y %H:%M"):
+                    if timesheet.datetime_stop.strftime("%m/%d/%Y %H:%M") >= timesheets[i+1].datetime_start.strftime("%m/%d/%Y %H:%M"):
                         _logger.info(f"L'orario {timesheet.datetime_stop.strftime('%m/%d/%Y %H:%M')} combacia con {timesheets[i+1].datetime_start.strftime('%m/%d/%Y %H:%M')}")
                         time_id.append(timesheets[i+1].id)
                     else:
