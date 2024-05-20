@@ -19,7 +19,7 @@ class Trip(models.Model):
     check = fields.Boolean(default=False)
     trip_start_from_survey = fields.Datetime(states={'checked': [('readonly', False)]})
     trip_end_from_survey = fields.Datetime(states={'checked': [('readonly', False)]})
-    drivers_payment = fields.Selection([('ore_pianificate','Ore pianificate'),('ore_effettive','Ore effettive'),('ore_macarena','Ore Mix 1'),('ore_macarena_inverso','Ore Mix inverso')], default='ore_pianificate')
+    drivers_payment = fields.Selection([('ore_pianificate','Ore pianificate'),('ore_effettive','Ore effettive'),('ore_macarena','Ore Mix 1'),('ore_macarena_inverso','Ore Mix inverso'),('non_pagabile','Non pagare')], default='ore_pianificate')
     all_drivers_ids = fields.One2many('res.partner', compute="_find_all_drivers_ids")
 
     state = fields.Selection(_states_list,
@@ -179,6 +179,9 @@ class Trip(models.Model):
                 end_datetime = record.last_stop_planned_at
                 trip_start = record.trip_start_from_survey
                 trip_end = record.last_stop_planned_at
+            elif driver_payment == "non_pagabile":
+                self.check = True
+                continue
 
             work_time = end_datetime - start_datetime
             working_seconds = work_time.total_seconds() / 3600.0
