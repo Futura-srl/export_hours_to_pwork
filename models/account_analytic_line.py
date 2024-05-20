@@ -267,3 +267,51 @@ class AccountAnalyticLine(models.Model):
                     'datetime_start': start,
                     'datetime_stop': stop,
                 })
+        
+    
+    # Questa funzione serve per gestire i turni orario che sono sovrapposti 
+    # I turni vanno ciclati per autista e messi in ordine di inizo turno
+    # Il primo record va saltato
+    # Si controlla sempre se il turno di inizio del record i+1 è antecedente alla fine del turno del record i, nel caso il turno inizio del record i+1 assume il valore del turno di fine del record i.
+    # Se i >= len(turni) -> salta il record
+    
+    def overlapping_time_management(self):
+        da_stampare = ""
+        employees = []
+        all_timesheet = self.env['account.analytic.line'].search([('id', '!=', 0)])
+        # _logger.info(all_timesheet)
+        for timesheet in all_timesheet:
+            employees.append(timesheet.employee_id)
+        employees = list(set(employees))
+        # Ciclo tutti i dipendenti e trovo i relativi timesheet messi in ordine di inizio turno (datetime_start)
+        for employee in employees:
+            employee_timesheets = self.env['account.analytic.line'].search([('employee_id', '=', employee.id)], order="datetime_start asc")
+            i = 0
+            # _logger.info(len(employee_timesheets)-1)
+            for employee_timesheet in employee_timesheets:
+                if i == 0:
+                    i += 1
+                    continue
+                frase_1 = f"turno corrente id: {employee_timesheet.id}, start: {employee_timesheet.datetime_start}, end: {employee_timesheet.datetime_stop}"
+                frase_2 = f"turno precedente id: {employee_timesheets[i-1].id}, start: {employee_timesheets[i-1].datetime_start}, end: {employee_timesheets[i-1].datetime_stop}"
+                # _logger.info(frase_1)
+                # _logger.info(frase_2)
+                if employee_timesheet.datetime_start == False or employee_timesheet.datetime_stop == False:
+                    continue
+                # Controllo se il turno di inzio del record corrente è antecedente al alla fine del turno del record precedente
+                if employee_timesheet.datetime_start < employee_timesheets[i-1].datetime_stop:
+                    frase_3 = 'Il turno corrente è iniziato prima della fine del turno precedente'
+                    # _logger.info(frase_3)
+                    frase_4 = f"La fine del turno corrente divente da {employee_timesheet.datetime_start} a {employee_timesheets[i-1].datetime_stop}"
+                    employee_timesheet.write({ 'datetime_start':  employee_timesheets[i-1].datetime_stop})
+                    da_stampare += f"{frase_1}\n{frase_2}\n{frase_4}\n----------------------"
+                else:
+                    frase_3 = 'Il turno corrente NON è iniziato prima della fine del turno precedente'
+                    # _logger.info(frase_3)
+        # _logger.info("AHAHAHAHA")
+        # _logger.info(da_stampare)
+                    
+                
+            
+        
+        

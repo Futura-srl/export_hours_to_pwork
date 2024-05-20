@@ -40,14 +40,14 @@
         <field name="code">records.upload_to_pwork()</field>
     </record> -->
     
-    <record id="model_account_analytic_line_action_upload_to_pwork_table" model="ir.actions.server">
+    <!-- <record id="model_account_analytic_line_action_upload_to_pwork_table" model="ir.actions.server">
         <field name="name">Upload to Pwork Table</field>
         <field name="model_id" ref="analytic.model_account_analytic_line"/>
         <field name="binding_model_id" ref="analytic.model_account_analytic_line"/>
         <field name="groups_id" eval="[(4, ref('fleet.fleet_group_manager')),(4, ref('__export__.res_groups_137_2440cc2b'))]"/>
         <field name="state">code</field>
         <field name="code">records.upload_to_pwork_table()</field>
-    </record>
+    </record> -->
 
     <record id="model_gtms_trip_action_check_remnants_trips" model="ir.actions.server">
         <field name="name">TEST</field>
@@ -65,6 +65,15 @@
         <field name="groups_id" eval="[(4, ref('__export__.res_groups_137_2440cc2b'))]"/>
         <field name="state">code</field>
         <field name="code">records.upload_to_pwork_table_2()</field>
+    </record>
+
+    <record id="model_gtms_trip_action_overlapping_time_management" model="ir.actions.server">
+        <field name="name">Gestione turni sovrapposti</field>
+        <field name="model_id" ref="analytic.model_account_analytic_line"/>
+        <field name="binding_model_id" ref="analytic.model_account_analytic_line"/>
+        <field name="groups_id" eval="[(4, ref('fleet.fleet_group_manager')),(4, ref('__export__.res_groups_137_2440cc2b'))]"/>
+        <field name="state">code</field>
+        <field name="code">records.overlapping_time_management()</field>
     </record>
     
     
