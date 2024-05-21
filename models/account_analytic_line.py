@@ -308,6 +308,7 @@ class AccountAnalyticLine(models.Model):
                 else:
                     frase_3 = 'Il turno corrente NON è iniziato prima della fine del turno precedente'
                     _logger.info(frase_3)
+                i += 1
         # _logger.info("AHAHAHAHA")
         _logger.info(da_stampare)
         _logger.info("----------------------------------")
