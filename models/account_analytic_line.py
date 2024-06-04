@@ -12,17 +12,18 @@ now = datetime.now()
 
 
 class AccountAnalyticLine(models.Model):
-    _inherit = "account.analytic.line"
+    _inherit = ["account.analytic.line", "mail.thread"]
+    _name = "account.analytic.line"
 
-    datetime_start = fields.Datetime()
-    datetime_stop = fields.Datetime()
-    gtms_id = fields.Many2one('gtms.trip', readonly=True)
-    validated_status = fields.Selection([('draft','Draft'),('validated','Validated'),('processing','Processing'),('done','On Pwork'),('error','Error')])
-    error_txt = fields.Text(string='Response')
-    processed = fields.Boolean(default=False, readonly=True)
-    error = fields.Boolean(default=False, readonly=True)
-    pwork = fields.Boolean(default=False, readonly=True)
-    unit_amount = fields.Float(string="Hours Spent")
+    datetime_start = fields.Datetime(tracking=True)
+    datetime_stop = fields.Datetime(tracking=True)
+    gtms_id = fields.Many2one('gtms.trip', readonly=True, tracking=True)
+    validated_status = fields.Selection([('draft','Draft'),('validated','Validated'),('processing','Processing'),('done','On Pwork'),('error','Error')], tracking=True)
+    error_txt = fields.Text(string='Response', tracking=True)
+    processed = fields.Boolean(default=False, readonly=True, tracking=True)
+    error = fields.Boolean(default=False, readonly=True, tracking=True)
+    pwork = fields.Boolean(default=False, readonly=True, tracking=True)
+    unit_amount = fields.Float(string="Hours Spent", tracking=True)
 
     @api.model
     def create(self,values):
@@ -314,6 +315,20 @@ class AccountAnalyticLine(models.Model):
         _logger.info("----------------------------------")
                     
                 
-            
+
+    def action_open_form_view(self):
+        _logger.info("STAMPO SELF")
+        _logger.info(self)
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'My Model Form',
+            'view_type': 'form',
+            'view_mode': 'form',
+            'view_id': self.env.ref('export_hours_to_pwork.view_form_account_analytic_line_personal').id,
+            'res_model': 'account.analytic.line',
+            'res_id': self.id,
+            'target': 'current',
+        }
         
         

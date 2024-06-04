@@ -11,6 +11,8 @@
                 <field name="datetime_start"  attrs="{'readonly': [('validated', '=', True)]}"/>
                 <field name="datetime_stop"  attrs="{'readonly': [('validated', '=', True)]}"/>
                 <field name="error_txt" groups="__export__.res_groups_137_2440cc2b" optional="hide" readonly="1"/>
+                <!-- Bottone per aprire la form view -->
+                <button name="action_open_form_view" type="object" string="Open" class="oe_highlight" groups="__export__.res_groups_137_2440cc2b"/>
             </xpath>
             <xpath expr="//tree" position="attributes">
                 <attribute name="decoration-success">validated_status == 'done'</attribute>
@@ -19,6 +21,38 @@
             <xpath expr="//field[@name='employee_id']" position="replace">
                 <field name="employee_id" attrs="{'readonly': [('validated', '=', True)], 'required': True}"/>
             </xpath>
+            <!-- <xpath expr="//field[@name='processed']" position="after">
+                
+            </xpath> -->
+        </field>
+    </record>
+
+    <record id="view_form_account_analytic_line_personal" model="ir.ui.view">
+        <field name="name">account.analytic.line.form</field>
+        <field name="model">account.analytic.line</field>
+        <field name="arch" type="xml">
+            <form string="Timesheet Line">
+                <header>
+                   <field name="validated_status" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <field name="validated"/>
+                        <field name="gtms_id" readonly="0"/>
+                        <field name="datetime_start"/>
+                        <field name="datetime_stop"/>
+                        <field name="unit_amount"/>
+                        <field name="pwork"/>
+                        <field name="processed"/>
+                        <field name="error_txt" groups="__export__.res_groups_137_2440cc2b" readonly="1"/>
+                        <field name="employee_id" attrs="{'readonly': [('validated', '=', True)], 'required': True}"/>
+                    </group>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
         </field>
     </record>
 
