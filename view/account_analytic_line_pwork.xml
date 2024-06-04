@@ -51,6 +51,23 @@
         </field>
     </record>
 
+    <record id="account_analytic_line_pwork_view_search" model="ir.ui.view">
+        <field name="name">account.analytic.line.pwork.view.search</field>
+        <field name="model">account.analytic.line.pwork</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="employee_id" readonly="1"/>
+                <field name="datetime_start"/>
+                <field name="datetime_stop"/>
+                <field name="validated_status" readonly="1"/>
+                <field name="error_txt" readonly="1"/>
+                <field name="pwork" readonly="1"/>
+                <field name="analytic_ids" readonly="1"/>
+                <field name="causale_gtms_pwork" readonly="1"/>
+            </search>
+        </field>
+    </record>
+
     <menuitem id="menu_action_account_analytic_line_pwork"
               parent="hr_timesheet.menu_hr_time_tracking"
               action="action_account_analytic_line_pwork"
