@@ -24,7 +24,7 @@ class Trip(models.Model):
 
     state = fields.Selection(_states_list,
                              string='Status', readonly=True, copy=False, index=True,
-                             default='draft', compute='_compute_state', store=True)
+                             default='draft', compute='_compute_state', store=True, tracking=True)
 
 
     def _find_all_drivers_ids(self):
