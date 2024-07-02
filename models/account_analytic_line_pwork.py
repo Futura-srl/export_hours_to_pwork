@@ -73,7 +73,7 @@ class AccountAnalyticLine(models.Model):
             badges = self.env['hr.badgespwork'].search_read([('active', '=', True), ('hr_id', '=', record.employee_id.id)],limit=1)
             for badge in badges:
                 _logger.info("Badge")
-            if badges == [] or badge == False or badge['name'] == False:
+            if badges == [] or badge['name'] == False:
                 self.error_txt = "Badge mancante"
                 continue
             _logger.info(f"Stampo badge {badge['name']}")
