@@ -277,9 +277,10 @@ class AccountAnalyticLine(models.Model):
     # Se i >= len(turni) -> salta il record
     
     def overlapping_time_management(self):
+        _logger.info(self)
         da_stampare = ""
         employees = []
-        all_timesheet = self.env['account.analytic.line'].search([('id', '!=', 0)])
+        all_timesheet = self.env['account.analytic.line'].search([('id', '!=', 0),('validated_status', '=', 'draft')])
         _logger.info(all_timesheet)
         for timesheet in all_timesheet:
             employees.append(timesheet.employee_id)
@@ -299,6 +300,9 @@ class AccountAnalyticLine(models.Model):
                 _logger.info(frase_2)
                 if employee_timesheet.datetime_start == False or employee_timesheet.datetime_stop == False:
                     continue
+                # Controllo se il turno di fine del record corrente è antecedente al alla fine del turno del record precedente
+                if employee_timesheets[i-1].datetime_stop > employee_timesheet.datetime_stop:
+                    raise ValidationError(_(f"Il dipendente {employee.name} con id {employee.id} - ha dei viaggi sovrapposti nei seguenti datetime: {employee_timesheets[i-1].datetime_stop} e {employee_timesheet.datetime_stop}"))
                 # Controllo se il turno di inzio del record corrente è antecedente al alla fine del turno del record precedente
                 if employee_timesheet.datetime_start < employee_timesheets[i-1].datetime_stop:
                     frase_3 = 'Il turno corrente è iniziato prima della fine del turno precedente'
