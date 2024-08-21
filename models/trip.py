@@ -208,7 +208,7 @@ class Trip(models.Model):
                 contracts = self.env['hr.contract'].search([
                     ('employee_id', '=', employee.id),
                     ('date_start', '<=', start_time),
-                    '|', ('date_end', '>=', end_time), ('date_end', '=', False)
+                    '|', ('date_end', '>=', end_time), ('date_end', '=', False),
                 ])
                 _logger.info("XXXXXXXXXXXXX")
                 _logger.info(contracts)
@@ -231,7 +231,9 @@ class Trip(models.Model):
                             'gtms_id': id,
                         })
                     # self.is_readonly = True 
-                    self.check = True 
+                    self.check = True
+                else:
+                    raise ValidationError(_(f"Il dipendente {employee.name} con id {employee.id} attualmente non ha alcun contratto valido. Contattare l'assistenza fornendo i dati appena forniti."))
                     
             if driver['learning_driver_id']:
                 for employee in employees_learning:
