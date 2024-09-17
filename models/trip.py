@@ -204,7 +204,11 @@ class Trip(models.Model):
                 employees_learning = self.env['hr.employee'].search([('address_home_id', '=', learning_driver_id), '|', ('active', '=', False),('active', '=', True)])
                 _logger.info(employees_learning)
             _logger.info(employees)
+            # Utilizzo indice per essere certo di aver controllato tutti i dipendenti associati al res.partner e nel caso non ci fossero contratti attivi eseguo l'errore
+            _logger.info("Setto indice = 1")
+            indice = 1
             for employee in employees:
+                _logger.info(f"Indice = {indice}, len = {len(employees)}")
                 contracts = self.env['hr.contract'].search([
                     ('employee_id', '=', employee.id),
                     ('date_start', '<=', start_time),
@@ -232,7 +236,10 @@ class Trip(models.Model):
                         })
                     # self.is_readonly = True 
                     self.check = True
+                    indice = 1 + indice
                 else:
+                    indice = 1 + indice
+                if indice == len(employees) and not contracts and not timesheet:
                     raise ValidationError(_(f"Il dipendente {employee.name} con id {employee.id} attualmente non ha alcun contratto valido. Contattare l'assistenza fornendo i dati appena forniti."))
                     
             if driver['learning_driver_id']:
@@ -247,7 +254,7 @@ class Trip(models.Model):
                         _logger.info(contracts[0].employee_id.id)
                         employee_id = contracts[0].employee_id.id
                         if learning_driver_id:
-                            timesheet = self.env['account.analytic.line'].create(
+                            timesheet_learning = self.env['account.analytic.line'].create(
                             {
                                 'date': start_time,
                                 'project_id': project_id,
