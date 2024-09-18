@@ -216,6 +216,7 @@ class Trip(models.Model):
                 ])
                 _logger.info("XXXXXXXXXXXXX")
                 _logger.info(contracts)
+                timesheet = False
                 if contracts:
                     _logger.info(contracts[0].employee_id.id)
                     employee_id = contracts[0].employee_id.id
