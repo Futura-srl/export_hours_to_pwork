@@ -207,7 +207,10 @@ class Trip(models.Model):
             # Utilizzo indice per essere certo di aver controllato tutti i dipendenti associati al res.partner e nel caso non ci fossero contratti attivi eseguo l'errore
             _logger.info("Setto indice = 0")
             indice = 0
+            timesheet = False
             for employee in employees:
+                if timesheet != False:
+                    continue
                 indice = 1 + indice
                 _logger.info(f"Indice = {indice}, len = {len(employees)}")
                 contracts = self.env['hr.contract'].search([
@@ -217,7 +220,7 @@ class Trip(models.Model):
                 ])
                 _logger.info("XXXXXXXXXXXXX")
                 _logger.info(contracts)
-                timesheet = False
+                
                 if contracts:
                     _logger.info(contracts[0].employee_id.id)
                     employee_id = contracts[0].employee_id.id
