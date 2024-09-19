@@ -243,6 +243,7 @@ class Trip(models.Model):
                     self.check = True
                     
                 else:
+                    continue
                 if indice == len(employees) and not contracts and not timesheet:
                     raise ValidationError(_(f"Il dipendente {employee.name} con id {employee.id} attualmente non ha alcun contratto valido. Contattare l'assistenza fornendo i dati appena forniti."))
                     
