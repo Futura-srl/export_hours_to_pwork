@@ -9,7 +9,7 @@ from datetime import datetime as dt
 
 _logger = logging.getLogger(__name__)
 now = datetime.now()
-
+day_ago_40 = now - timedelta(days=40)
 
 class AccountAnalyticLine(models.Model):
     _inherit = ["account.analytic.line", "mail.thread"]
@@ -32,7 +32,7 @@ class AccountAnalyticLine(models.Model):
             work_time = res.datetime_stop - res.datetime_start
             working_seconds = work_time.total_seconds() / 3600.0
             res.write({'unit_amount': working_seconds})
-            
+
 
     @api.onchange('datetime_start', 'datetime_stop')
     def _compute_unit_amount(self):
@@ -80,7 +80,7 @@ class AccountAnalyticLine(models.Model):
                 ore_u = record.datetime_stop.strftime("%H")
                 minuti_u = record.datetime_stop.strftime("%M")
                 secondi_u = record.datetime_stop.strftime("%S")
-                
+
                 # Recupero il badge del dipendente
                 # badges = self.env['hr.badgespwork'].search_read([('active', '=', True), ('hr_id', '=', record.employee_id.id)],limit=1)
                 # for badge in badges:
@@ -115,14 +115,14 @@ class AccountAnalyticLine(models.Model):
                 raise ValidationError(_(f"Il dipendente {record.employee_id.name} con id {record.employee_id.id} ha uno o più viaggi ancora in stati diversi da 'checked' o 'cancel' in data {record.date.strftime('%d/%m/%Y')}:\n{list_trips_open}"))
             else:
                 return True
-        
+
     def upload_to_pwork_table(self):
         shifts_data = []
         shifts_data_unique = []
         for record in self:
             # Prendo tutti i datetime e li inserisco in un array
             shifts_data.append((record.datetime_start, record.datetime_stop, record.employee_id, record.id))
-    
+
         # Ordina i dati dei turni per dipendente, data (giorno) di inizio e ora di inizio
         shifts_data.sort(key=lambda x: (x[0].date()))
         for record in shifts_data:
@@ -131,10 +131,10 @@ class AccountAnalyticLine(models.Model):
         shifts_data_unique = list(set(shifts_data_unique))
         _logger.info(shifts_data_unique)
         for single_employee in shifts_data_unique:
-            
+
             combined_shifts = []
             combined_analytics = []
-            # for single_employee_id in 
+            # for single_employee_id in
             for (employee), group in groupby(shifts_data, key=lambda x: x[2].name):
                 # Itera attraverso i turni del gruppo
                 for start, end, employee_id, analytic_id in group:
@@ -146,7 +146,7 @@ class AccountAnalyticLine(models.Model):
                     if combined_shifts:
                         # Ottieni l'ultimo turno combinato
                         last_combined_start, last_combined_end, last_combined_employee, last_combined_analytic = combined_shifts[-1]
-                    
+
                         # Se l'ultimo turno combinato finisce quando inizia il turno attuale, unisci i due turni
                         if last_combined_end.strftime("%m/%d/%Y, %H:%M") >= start.strftime("%m/%d/%Y, %H:%M") or last_combined_end.strftime("%m/%d/%Y, %H:%M") > start.strftime("%m/%d/%Y, %H:%M"):
                             # Aggiorna l'ultimo turno combinato con la nuova ora di fine e aggiungi l'ID analitico corrente alla lista degli ID analitici
@@ -162,7 +162,7 @@ class AccountAnalyticLine(models.Model):
                         # Se è il primo turno, aggiungi direttamente
                         combined_shifts.append((start, end, employee_id, [analytic_id]))
                         combined_analytics.append(analytic_id)
-    
+
             # Stampa i risultati
             for i, (start, end, employee_id, analytic_id ) in enumerate(combined_shifts, start=1):
                 _logger.info(combined_analytics)
@@ -180,7 +180,7 @@ class AccountAnalyticLine(models.Model):
     # Rifaccio la funzione upload_to_pwork_table
     # prendo gli id dei record selezionati e li utilizzo per cercare gli stessi timesheet ma solo messi in ordine di esecuzione:
     # raggruppo tutti i timesheet per dipendente e se vi sono piu turni che finiscono e iniziano nello stesso momento creo un timesheet unico
-    
+
     def upload_to_pwork_table_2(self):
         shifts_data = []
         shifts_data_unique = []
@@ -214,7 +214,7 @@ class AccountAnalyticLine(models.Model):
                         time_id.append(timesheet.id)
                 _logger.info(f"Stampo id timesheet {timesheet.id}")
                 _logger.info(len(timesheets))
-                
+
                 if i == 0:
                     _logger.info("--------------------------------")
                     _logger.info("Primo timesheet del dipendente")
@@ -223,9 +223,9 @@ class AccountAnalyticLine(models.Model):
                     _logger.info(f"Dipendente {timesheet.employee_id.name}")
 
                 _logger.info(f"Indice timesheet {i}")
-                
+
                 _logger.info(f"turno corrente {timesheet.datetime_start} - {timesheet.datetime_stop}")
-                
+
                 if (i + 1) < len(timesheets):
                     _logger.info(f"turno successivo {timesheets[i+1].datetime_start} - {timesheets[i+1].datetime_stop}")
                     # _logger.info(f"timesheet tramite indice {timesheets[i+1].datetime_start}")
@@ -238,12 +238,12 @@ class AccountAnalyticLine(models.Model):
                     else:
                         _logger.info(f"L'orario {timesheet.datetime_stop.strftime('%m/%d/%Y %H:%M')} NON combacia con {timesheets[i+1].datetime_start.strftime('%m/%d/%Y %H:%M')}")
                         _logger.info(f"Queste sono i timesheet che saranano uniti\n{time_id}")
-                        
+
                         stop = timesheet.datetime_stop
                         _logger.info("CARICOOOOOOOO")
                         _logger.info(f" Orari partenza {start} - orario arrivo {stop} - id_timesheet {time_id}")
                         self.create_timesheets(start,stop,employee,time_id)
-                        
+
                 # Ultimo timesheet del dipendente
                 if i == len(timesheets) - 1:
                     stop = timesheet.datetime_stop
@@ -252,8 +252,8 @@ class AccountAnalyticLine(models.Model):
                     _logger.info("CARICOOOOOOOO")
                     self.create_timesheets(start,stop,employee,time_id)
                     _logger.info(f" Orari partenza {start} - orario arrivo {stop} - id_timesheet {time_id}")
-                    
-                    
+
+
                 else:
                     _logger.info("Ultimo timesheet del dipendente")
                 _logger.info(f"Stato attuale time_id {time_id}")
@@ -268,19 +268,20 @@ class AccountAnalyticLine(models.Model):
                     'datetime_start': start,
                     'datetime_stop': stop,
                 })
-        
-    
-    # Questa funzione serve per gestire i turni orario che sono sovrapposti 
+
+
+    # Questa funzione serve per gestire i turni orario che sono sovrapposti
     # I turni vanno ciclati per autista e messi in ordine di inizo turno
     # Il primo record va saltato
     # Si controlla sempre se il turno di inizio del record i+1 è antecedente alla fine del turno del record i, nel caso il turno inizio del record i+1 assume il valore del turno di fine del record i.
     # Se i >= len(turni) -> salta il record
-    
+
     def overlapping_time_management(self):
+
         _logger.info(self)
         da_stampare = ""
         employees = []
-        all_timesheet = self.env['account.analytic.line'].search([('id', '!=', 0),('validated_status', '=', 'draft')])
+        all_timesheet = self.env['account.analytic.line'].search([('id', '!=', 0),('validated_status', '=', 'draft'), ('datetime_start', '=', day_ago_40)])
         _logger.info(all_timesheet)
         for timesheet in all_timesheet:
             employees.append(timesheet.employee_id)
@@ -317,8 +318,8 @@ class AccountAnalyticLine(models.Model):
         # _logger.info("AHAHAHAHA")
         _logger.info(da_stampare)
         _logger.info("----------------------------------")
-                    
-                
+
+
 
     def action_open_form_view(self):
         _logger.info("STAMPO SELF")
@@ -334,5 +335,3 @@ class AccountAnalyticLine(models.Model):
             'res_id': self.id,
             'target': 'current',
         }
-        
-        
