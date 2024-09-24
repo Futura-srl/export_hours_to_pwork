@@ -11,6 +11,8 @@ _logger = logging.getLogger(__name__)
 now = datetime.now()
 day_ago_40 = now - timedelta(days=40)
 
+
+
 class AccountAnalyticLine(models.Model):
     _inherit = ["account.analytic.line", "mail.thread"]
     _name = "account.analytic.line"
@@ -277,18 +279,17 @@ class AccountAnalyticLine(models.Model):
     # Se i >= len(turni) -> salta il record
 
     def overlapping_time_management(self):
-
         _logger.info(self)
         da_stampare = ""
         employees = []
-        all_timesheet = self.env['account.analytic.line'].search([('id', '!=', 0),('validated_status', '=', 'draft'), ('datetime_start', '=', day_ago_40)])
+        all_timesheet = self.env['account.analytic.line'].search([('id', '!=', 0),('validated_status', '=', 'draft'), ('datetime_start', '>', day_ago_40)])
         _logger.info(all_timesheet)
         for timesheet in all_timesheet:
             employees.append(timesheet.employee_id)
         employees = list(set(employees))
         # Ciclo tutti i dipendenti e trovo i relativi timesheet messi in ordine di inizio turno (datetime_start)
         for employee in employees:
-            employee_timesheets = self.env['account.analytic.line'].search([('employee_id', '=', employee.id)], order="datetime_start asc")
+            employee_timesheets = self.env['account.analytic.line'].search([('employee_id', '=', employee.id), ('datetime_start', '>', day_ago_40)], order="datetime_start asc")
             i = 0
             _logger.info(len(employee_timesheets)-1)
             for employee_timesheet in employee_timesheets:
