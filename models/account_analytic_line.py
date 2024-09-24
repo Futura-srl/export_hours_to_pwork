@@ -289,7 +289,7 @@ class AccountAnalyticLine(models.Model):
         employees = list(set(employees))
         # Ciclo tutti i dipendenti e trovo i relativi timesheet messi in ordine di inizio turno (datetime_start)
         for employee in employees:
-            employee_timesheets = self.env['account.analytic.line'].search([('employee_id', '=', employee.id), ('datetime_start', '>', day_ago_40)], order="datetime_start asc")
+            employee_timesheets = self.env['account.analytic.line'].search([('employee_id', '=', employee.id), ('validated_status', '=', 'draft'), ('datetime_start', '>', day_ago_40)], order="datetime_start asc")
             i = 0
             _logger.info(len(employee_timesheets)-1)
             for employee_timesheet in employee_timesheets:
