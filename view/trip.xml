@@ -27,6 +27,12 @@
             <xpath expr="//field[@name='trip_end_from_survey']" position="replace">
                 <field name="trip_end_from_survey" attrs="{'readonly': [('state', '=', 'checked')]}"/>
             </xpath>
+            <xpath expr="//field[@name='trip_end_from_survey']" position="after">
+                # il campo sara' di colore rosso se negativo e i colore verde se positivo. Giallo se supera le 14 ore
+                <field name="total_hour_payment" attrs="{'invisible': True}" />
+
+                <field name="total_hour_payment" attrs="{'readonly': True}" decoration-success="total_hour_payment &gt; 0" decoration-warning="total_hour_payment &gt; 13.59" decoration-danger="total_hour_payment &lt; 0" decoration-bf="1" style="font-size: large"/>
+            </xpath>
             <!-- <xpath expr="//field[@name='source_document']" position="replace">
                 <field name="source_document" attrs="{'readonly': [('is_readonly', '=', True)]}"/>
             </xpath> -->
@@ -90,6 +96,7 @@
                 <field name="trip_start_from_survey"/>
                 <field name="trip_end_from_survey"/>
                 <field name="drivers_payment"/>
+                <field name="total_hour_payment" attrs="{'readonly': True}" decoration-success="total_hour_payment &gt; 0" decoration-warning="total_hour_payment &gt; 13.59" decoration-danger="total_hour_payment &lt; 0" decoration-bf="1"/>
             </xpath>
         </field>
     </record>

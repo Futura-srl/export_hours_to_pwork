@@ -26,6 +26,55 @@ class Trip(models.Model):
                              string='Status', readonly=True, copy=False, index=True,
                              default='draft', compute='_compute_state', store=True, tracking=True)
 
+    total_hour_payment = fields.Float(string="Totale ore pagate", compute="_compute_total_hour_payment")
+
+    # Questa funzione mostra un errore quando si cerca di inserire un orario di fine viaggio precedente a quello di inizio
+    @api.constrains('trip_start_from_survey', 'trip_end_from_survey')
+    def _check_survey_trip_dates(self):
+        for record in self:
+            if record.state != 'done':
+                continue
+            else:
+                if record.trip_start_from_survey and record.trip_end_from_survey:
+                    if record.trip_start_from_survey > record.trip_end_from_survey:
+                        raise ValidationError(_("L'orario del sondaggio di fine viaggio non può essere precedente a quello di inizio."))
+
+    # Questa funzione calcola il totale delle ore pagate in base al metodo scelto
+    def _compute_total_hour_payment(self):
+        for record in self:
+            if record.drivers_payment == 'ore_pianificate':
+                if record.first_stop_planned_at and record.last_stop_planned_at:
+                    start_time = record.first_stop_planned_at
+                    end_time = record.last_stop_planned_at
+                    work_time = end_time - start_time
+                    working_seconds = work_time.total_seconds() / 3600.0
+                    record.total_hour_payment = working_seconds
+            elif record.drivers_payment == 'ore_effettive':
+                if record.trip_start_from_survey and record.trip_end_from_survey:
+                    start_time = record.trip_start_from_survey
+                    end_time = record.trip_end_from_survey
+                    work_time = end_time - start_time
+                    working_seconds = work_time.total_seconds() / 3600.0
+                    record.total_hour_payment = working_seconds
+            elif record.drivers_payment == 'ore_macarena':
+                if record.first_stop_planned_at and record.trip_end_from_survey:
+                    start_time = record.first_stop_planned_at
+                    end_time = record.trip_end_from_survey
+                    work_time = end_time - start_time
+                    working_seconds = work_time.total_seconds() / 3600.0
+                    record.total_hour_payment = working_seconds
+            elif record.drivers_payment == 'ore_macarena_inverso':
+                if record.trip_start_from_survey and record.last_stop_planned_at:
+                    start_time = record.trip_start_from_survey
+                    end_time = record.last_stop_planned_at
+                    work_time = end_time - start_time
+                    working_seconds = work_time.total_seconds() / 3600.0
+                    record.total_hour_payment = working_seconds
+            elif record.drivers_payment == 'non_pagabile':
+                record.total_hour_payment = 0
+            else:
+                record.total_hour_payment = 0
+
 
     def _find_all_drivers_ids(self):
         for field in self:
@@ -182,6 +231,10 @@ class Trip(models.Model):
             elif driver_payment == "non_pagabile":
                 self.check = True
                 continue
+
+            # Facciol un controllo per evitare che l'orario di fine viaggio sia precedente a quello di inizio
+            if start_time > end_time:
+                raise ValidationError(_(f"L'orario di fine viaggio non può essere precedente a quello di inizio. Viaggio: {trip}"))
 
             work_time = end_datetime - start_datetime
             working_seconds = work_time.total_seconds() / 3600.0
