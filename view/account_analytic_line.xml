@@ -6,10 +6,10 @@
         <field name="inherit_id" ref="hr_timesheet.hr_timesheet_line_tree"/>
         <field name="arch" type="xml">
             <xpath expr="//tree" position="inside">
-                <field name="gtms_id" attrs="{'readonly': [('validated', '=', True)]}"/>
-                <field name="validated_status" attrs="{'readonly': [('validated', '=', True)]}"/>
-                <field name="datetime_start"  attrs="{'readonly': [('validated', '=', True)]}"/>
-                <field name="datetime_stop"  attrs="{'readonly': [('validated', '=', True)]}"/>
+                <field name="gtms_id" readonly="[('validated', '=', True)]"/>
+                <field name="validated_status" readonly="[('validated', '=', True)]"/>
+                <field name="datetime_start"  readonly="[('validated', '=', True)]"/>
+                <field name="datetime_stop"  'readonly="[('validated', '=', True)]"/>
                 <field name="error_txt" groups="__export__.res_groups_137_2440cc2b" optional="hide" readonly="1"/>
                 <!-- Bottone per aprire la form view -->
                 <button name="action_open_form_view" type="object" string="Open" class="oe_highlight" groups="__export__.res_groups_137_2440cc2b"/>
@@ -19,7 +19,7 @@
                 <attribute name="decoration-danger">validated_status == 'error'</attribute>
             </xpath>
             <xpath expr="//field[@name='employee_id']" position="replace">
-                <field name="employee_id" attrs="{'readonly': [('validated', '=', True)], 'required': True}"/>
+                <field name="employee_id" readonly="[('validated', '=', True)]" required="True"/>
             </xpath>
             <!-- <xpath expr="//field[@name='processed']" position="after">
                 
@@ -45,7 +45,7 @@
                         <field name="pwork"/>
                         <field name="processed"/>
                         <field name="error_txt" groups="__export__.res_groups_137_2440cc2b" readonly="0"/>
-                        <field name="employee_id" attrs="{'readonly': [('validated', '=', True)], 'required': True}"/>
+                        <field name="employee_id" readonly="[('validated', '=', True)]" required="True"/>
                     </group>
                 </sheet>
                 <div class="oe_chatter">

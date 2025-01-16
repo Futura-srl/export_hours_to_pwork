@@ -10,7 +10,7 @@
                            statusbar_visible="draft,ready,planning,partially,planned,running,done,cancel,checked"/>
             </xpath>
             <xpath expr="//field[@name='trip_end_from_survey']" position="after">
-                <field name="drivers_payment" attrs="{'readonly': [('state', 'in', ['checked'])]}"/>
+                <field name="drivers_payment" readonly="[('state', 'in', ['checked'])]"/>
                 <field name="all_drivers_ids" widget="many2many_tags"/>
             </xpath>
         </field>
@@ -22,40 +22,40 @@
         <field name="inherit_id" ref="gtms_inspection_survey.trip_form_view"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='trip_start_from_survey']" position="replace">
-                <field name="trip_start_from_survey" attrs="{'readonly': [('state', '=', 'checked')]}"/>
+                <field name="trip_start_from_survey" readonly="[('state', '=', 'checked')]"/>
             </xpath>
             <xpath expr="//field[@name='trip_end_from_survey']" position="replace">
-                <field name="trip_end_from_survey" attrs="{'readonly': [('state', '=', 'checked')]}"/>
+                <field name="trip_end_from_survey" readonly="[('state', '=', 'checked')]"/>
             </xpath>
             <xpath expr="//field[@name='trip_end_from_survey']" position="after">
                 # il campo sara' di colore rosso se negativo e i colore verde se positivo. Giallo se supera le 14 ore
-                <field name="total_hour_payment" attrs="{'invisible': True}" />
+                <field name="total_hour_payment" invisible="True" />
 
-                <field name="total_hour_payment" attrs="{'readonly': True}" decoration-success="total_hour_payment &gt; 0" decoration-warning="total_hour_payment &gt; 13.59" decoration-danger="total_hour_payment &lt; 0" decoration-bf="1" style="font-size: large"/>
+                <field name="total_hour_payment" widget="float_time" readonly="True" decoration-success="total_hour_payment &gt; 0" decoration-warning="total_hour_payment &gt; 13.59" decoration-danger="total_hour_payment &lt; 0" decoration-bf="1" style="font-size: large"/>
             </xpath>
             <!-- <xpath expr="//field[@name='source_document']" position="replace">
                 <field name="source_document" attrs="{'readonly': [('is_readonly', '=', True)]}"/>
             </xpath> -->
             <xpath expr="//field[@name='is_trip']" position="replace">
-                <field name="is_trip" attrs="{'readonly': ['|',('is_readonly', '=', True),('state', 'in', ['done', 'cancel', 'checked'])]}"/>
+                <field name="is_trip" readonly="['|',('is_readonly', '=', True),('state', 'in', ['done', 'cancel', 'checked'])]"/>
             </xpath>
             <!-- <xpath expr="//field[@name='external_identifier']" position="replace">
                 <field name="external_identifier" attrs="{'readonly': [('is_readonly', '=', True)]}"/>
             </xpath> -->
             <xpath expr="//field[@name='is_transport']" position="replace">
-                <field name="is_transport" attrs="{'readonly': [('is_readonly', '=', True),('state', 'in', ['done', 'cancel', 'checked'])]}"/>
+                <field name="is_transport" readonly="[('is_readonly', '=', True),('state', 'in', ['done', 'cancel', 'checked'])]"/>
             </xpath>
             <xpath expr="//field[@name='company_ids']" position="replace">
-                <field name="company_ids" widget="many2many_tags" attrs="{'readonly': [('is_readonly', '=', True),('state', 'in', ['done', 'cancel', 'checked'])]}"/>
+                <field name="company_ids" widget="many2many_tags" readonly="[('is_readonly', '=', True),('state', 'in', ['done', 'cancel', 'checked'])]"/>
             </xpath>
             <xpath expr="//field[@name='volume_expected']" position="replace">
-                <field name="volume_expected" attrs="{'readonly': [('is_readonly', '=', True)]}"/>
+                <field name="volume_expected" readonly="[('is_readonly', '=', True)]"/>
             </xpath>
             <xpath expr="//field[@name='weight_expected']" position="replace">
-                <field name="weight_expected" attrs="{'readonly': [('is_readonly', '=', True)]}"/>
+                <field name="weight_expected" readonly="[('is_readonly', '=', True)]"/>
             </xpath>
             <xpath expr="//field[@name='distance_expected']" position="replace">
-                <field name="distance_expected" attrs="{'readonly': [('is_readonly', '=', True)]}"/>
+                <field name="distance_expected" readonly="[('is_readonly', '=', True)]"/>
             </xpath>
             <!-- <xpath expr="//field[@name='ort']" position="replace">
                 <field name="ort" attrs="{'readonly': [('is_readonly', '=', [('state', 'in' ['done','cancel','checked'])])]}"/>
@@ -96,7 +96,7 @@
                 <field name="trip_start_from_survey"/>
                 <field name="trip_end_from_survey"/>
                 <field name="drivers_payment"/>
-                <field name="total_hour_payment" attrs="{'readonly': True}" decoration-success="total_hour_payment &gt; 0" decoration-warning="total_hour_payment &gt; 13.59" decoration-danger="total_hour_payment &lt; 0" decoration-bf="1"/>
+                <field name="total_hour_payment" widget="float_time" readonly="True" decoration-success="total_hour_payment &gt; 0" decoration-warning="total_hour_payment &gt; 13.59" decoration-danger="total_hour_payment &lt; 0" decoration-bf="1"/>
             </xpath>
         </field>
     </record>
