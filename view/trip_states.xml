@@ -21,14 +21,15 @@
     <menuitem id="menu_action_gtms_trip_states"
               parent="gtms.menu_gtms_configuration"
               action="action_gtms_trip_states"
-              name="Gtms trip states"/> <!-- DA REINTEGRARE groups="__export__.res_groups_137_2440cc2b" -->
+              groups="Diritti.developer_group"
+              name="Gtms trip states"/>
 
     <!-- Versione per tutti i ROP, al momento non possono farlo in versione massiva -->
     <record id="model_gtms_trip_action_checked" model="ir.actions.server">
         <field name="name">Checked</field>
         <field name="model_id" ref="gtms.model_gtms_trip"/>
         <field name="binding_model_id" ref="gtms.model_gtms_trip"/>
-        <!-- DA REINTEGRARE <field name="groups_id" eval="[(4, ref('__export__.res_groups_116_5d6ba1ab'))]"/> -->
+        DA REINTEGRARE <field name="groups_id" eval="[(4, ref('Diritti.rop_group'))]"/>
         <field name="state">code</field>
         <field name="binding_view_types">form</field>
         <field name="code">records.checked()</field>
@@ -39,7 +40,7 @@
         <field name="name">Checked (admin)</field>
         <field name="model_id" ref="gtms.model_gtms_trip"/>
         <field name="binding_model_id" ref="gtms.model_gtms_trip"/>
-        <!-- DA REINTEGRARE <field name="groups_id" eval="[(4, ref('fleet.fleet_group_manager'))]"/> -->
+        <field name="groups_id" eval="[(4, ref('fleet.fleet_group_manager'))]"/>
         <field name="state">code</field>
         <field name="code">records.checked()</field>
     </record>
@@ -48,7 +49,7 @@
         <field name="name">Unchecked</field>
         <field name="model_id" ref="gtms.model_gtms_trip"/>
         <field name="binding_model_id" ref="gtms.model_gtms_trip"/>
-        <!-- DA REINTEGRARE <field name="groups_id" eval="[(4, ref('fleet.fleet_group_manager')),(4, ref('__export__.res_groups_137_2440cc2b'))]"/> -->
+        <field name="groups_id" eval="[(4, ref('fleet.fleet_group_manager')),(4, ref('Diritti.developer_group'))]"/>
         <field name="state">code</field>
         <field name="code">records.unchecked()</field>
     </record>
@@ -57,7 +58,7 @@
         <field name="name">TEST</field>
         <field name="model_id" ref="gtms.model_gtms_trip"/>
         <field name="binding_model_id" ref="gtms.model_gtms_trip"/>
-        <!-- DA REINTEGRARE <field name="groups_id" eval="[(4, ref('__export__.res_groups_137_2440cc2b'))]"/> -->
+        <field name="groups_id" eval="[(4, ref('Diritti.developer_group'))]"/>
         <field name="state">code</field>
         <field name="code">records.test()</field>
     </record>

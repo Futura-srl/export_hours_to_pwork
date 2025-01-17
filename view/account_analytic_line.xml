@@ -10,9 +10,9 @@
                 <field name="validated_status" readonly="[('validated', '=', True)]"/>
                 <field name="datetime_start"  readonly="[('validated', '=', True)]"/>
                 <field name="datetime_stop"  readonly="[('validated', '=', True)]"/>
-                <field name="error_txt" groups="__export__.res_groups_137_2440cc2b" optional="hide" readonly="1"/>
+                <field name="error_txt" groups="Diritti.developer_group" optional="hide" readonly="1"/>
                 <!-- Bottone per aprire la form view -->
-                <button name="action_open_form_view" type="object" string="Open" class="oe_highlight" groups="__export__.res_groups_137_2440cc2b"/>
+                <button name="action_open_form_view" type="object" string="Open" class="oe_highlight" groups="Diritti.developer_group"/>
             </xpath>
             <xpath expr="//tree" position="attributes">
                 <attribute name="decoration-success">validated_status == 'done'</attribute>
@@ -44,7 +44,7 @@
                         <field name="unit_amount"/>
                         <field name="pwork"/>
                         <field name="processed"/>
-                        <field name="error_txt" groups="__export__.res_groups_137_2440cc2b" readonly="0"/>
+                        <field name="error_txt" groups="Diritti.developer_group" readonly="0"/>
                         <field name="employee_id" readonly="[('validated', '=', True)]" required="True"/>
                     </group>
                 </sheet>
@@ -60,7 +60,7 @@
         <field name="name">Processing to Pwork</field>
         <field name="model_id" ref="analytic.model_account_analytic_line"/>
         <field name="binding_model_id" ref="analytic.model_account_analytic_line"/>
-       <!-- REINTEGRARE <field name="groups_id" eval="[(4, ref('fleet.fleet_group_manager')),(4, ref('__export__.res_groups_137_2440cc2b'))]"/> -->
+        <field name="groups_id" eval="[(4, ref('fleet.fleet_group_manager')),(4, ref('Diritti.developer_group'))]"/>
         <field name="state">code</field>
         <field name="code">records.processing_to_pwork()</field>
     </record>
@@ -69,7 +69,7 @@
         <field name="name">Upload to Pwork</field>
         <field name="model_id" ref="analytic.model_account_analytic_line"/>
         <field name="binding_model_id" ref="analytic.model_account_analytic_line"/>
-        <field name="groups_id" eval="[(4, ref('fleet.fleet_group_manager')),(4, ref('__export__.res_groups_137_2440cc2b'))]"/>
+        <field name="groups_id" eval="[(4, ref('fleet.fleet_group_manager')),(4, ref('Diritti.developer_group'))]"/>
         <field name="state">code</field>
         <field name="code">records.upload_to_pwork()</field>
     </record> -->
@@ -78,7 +78,7 @@
         <field name="name">Upload to Pwork Table</field>
         <field name="model_id" ref="analytic.model_account_analytic_line"/>
         <field name="binding_model_id" ref="analytic.model_account_analytic_line"/>
-        <field name="groups_id" eval="[(4, ref('fleet.fleet_group_manager')),(4, ref('__export__.res_groups_137_2440cc2b'))]"/>
+        <field name="groups_id" eval="[(4, ref('fleet.fleet_group_manager')),(4, ref('Diritti.developer_group'))]"/>
         <field name="state">code</field>
         <field name="code">records.upload_to_pwork_table()</field>
     </record> -->
@@ -87,7 +87,7 @@
         <field name="name">TEST</field>
         <field name="model_id" ref="analytic.model_account_analytic_line"/>
         <field name="binding_model_id" ref="analytic.model_account_analytic_line"/>
-        <!-- REINTEGRARE <field name="groups_id" eval="[(4, ref('__export__.res_groups_137_2440cc2b'))]"/> -->
+        <field name="groups_id" eval="[(4, ref('Diritti.developer_group'))]"/>
         <field name="state">code</field>
         <field name="code">records.check_remnants_trips()</field>
     </record>
@@ -96,7 +96,7 @@
         <field name="name">Processing to Pwork V2</field>
         <field name="model_id" ref="analytic.model_account_analytic_line"/>
         <field name="binding_model_id" ref="analytic.model_account_analytic_line"/>
-        <!-- REINTEGRARE <field name="groups_id" eval="[(4, ref('fleet.fleet_group_manager')),(4, ref('__export__.res_groups_137_2440cc2b'))]"/> -->
+        <field name="groups_id" eval="[(4, ref('fleet.fleet_group_manager')),(4, ref('Diritti.developer_group'))]"/>
         <field name="state">code</field>
         <field name="code">records.upload_to_pwork_table_2()</field>
     </record>
@@ -105,7 +105,7 @@
         <field name="name">Gestione turni sovrapposti</field>
         <field name="model_id" ref="analytic.model_account_analytic_line"/>
         <field name="binding_model_id" ref="analytic.model_account_analytic_line"/>
-        <!-- REINTEGRARE <field name="groups_id" eval="[(4, ref('fleet.fleet_group_manager')),(4, ref('__export__.res_groups_137_2440cc2b'))]"/> -->
+        <field name="groups_id" eval="[(4, ref('fleet.fleet_group_manager')),(4, ref('Diritti.developer_group'))]"/>
         <field name="state">code</field>
         <field name="code">records.overlapping_time_management()</field>
     </record>
