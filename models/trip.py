@@ -42,48 +42,45 @@ class Trip(models.Model):
     # Questa funzione calcola il totale delle ore pagate in base al metodo scelto
     def _compute_total_hour_payment(self):
         for record in self:
-            try:
-                if record.drivers_payment == 'ore_pianificate':
-                    if record.first_stop_planned_at and record.last_stop_planned_at:
-                        start_time = record.first_stop_planned_at
-                        end_time = record.last_stop_planned_at
-                        work_time = end_time - start_time
-                        working_seconds = work_time.total_seconds() / 3600.0
-                        record.total_hour_payment = working_seconds
-                    else:
-                        record.total_hour_payment = 0
-                elif record.drivers_payment == 'ore_effettive':
-                    if record.trip_start_from_survey and record.trip_end_from_survey:
-                        start_time = record.trip_start_from_survey
-                        end_time = record.trip_end_from_survey
-                        work_time = end_time - start_time
-                        working_seconds = work_time.total_seconds() / 3600.0
-                        record.total_hour_payment = working_seconds
-                    else:
-                        record.total_hour_payment = 0
-                elif record.drivers_payment == 'ore_macarena':
-                    if record.first_stop_planned_at and record.trip_end_from_survey:
-                        start_time = record.first_stop_planned_at
-                        end_time = record.trip_end_from_survey
-                        work_time = end_time - start_time
-                        working_seconds = work_time.total_seconds() / 3600.0
-                        record.total_hour_payment = working_seconds
-                    else:
-                        record.total_hour_payment = 0
-                elif record.drivers_payment == 'ore_macarena_inverso':
-                    if record.trip_start_from_survey and record.last_stop_planned_at:
-                        start_time = record.trip_start_from_survey
-                        end_time = record.last_stop_planned_at
-                        work_time = end_time - start_time
-                        working_seconds = work_time.total_seconds() / 3600.0
-                        record.total_hour_payment = working_seconds
-                    else:
-                        record.total_hour_payment = 0
-                elif record.drivers_payment == 'non_pagabile':
-                    record.total_hour_payment = 0
+            if record.drivers_payment == 'ore_pianificate':
+                if record.first_stop_planned_at and record.last_stop_planned_at:
+                    start_time = record.first_stop_planned_at
+                    end_time = record.last_stop_planned_at
+                    work_time = end_time - start_time
+                    working_seconds = work_time.total_seconds() / 3600.0
+                    record.total_hour_payment = working_seconds
                 else:
                     record.total_hour_payment = 0
-            except:
+            elif record.drivers_payment == 'ore_effettive':
+                if record.trip_start_from_survey and record.trip_end_from_survey:
+                    start_time = record.trip_start_from_survey
+                    end_time = record.trip_end_from_survey
+                    work_time = end_time - start_time
+                    working_seconds = work_time.total_seconds() / 3600.0
+                    record.total_hour_payment = working_seconds
+                else:
+                    record.total_hour_payment = 0
+            elif record.drivers_payment == 'ore_macarena':
+                if record.first_stop_planned_at and record.trip_end_from_survey:
+                    start_time = record.first_stop_planned_at
+                    end_time = record.trip_end_from_survey
+                    work_time = end_time - start_time
+                    working_seconds = work_time.total_seconds() / 3600.0
+                    record.total_hour_payment = working_seconds
+                else:
+                    record.total_hour_payment = 0
+            elif record.drivers_payment == 'ore_macarena_inverso':
+                if record.trip_start_from_survey and record.last_stop_planned_at:
+                    start_time = record.trip_start_from_survey
+                    end_time = record.last_stop_planned_at
+                    work_time = end_time - start_time
+                    working_seconds = work_time.total_seconds() / 3600.0
+                    record.total_hour_payment = working_seconds
+                else:
+                    record.total_hour_payment = 0
+            elif record.drivers_payment == 'non_pagabile':
+                record.total_hour_payment = 0
+            else:
                 record.total_hour_payment = 0
 
 

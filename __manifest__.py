@@ -9,6 +9,7 @@
     'data': [
         # # # Settaggi per accesso ai contenuti
         'data/ir.model.access.csv',
+        'data/scheduled_action.xml',
         # # # Caricamento delle view,
         'view/trip_states.xml',
         'view/trip.xml',
