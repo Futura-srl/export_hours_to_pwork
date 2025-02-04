@@ -11,5 +11,6 @@
         <field name="numbercall">-1</field>
         <field name="doall">False</field>
         <field name="active" eval="True"/>
+    </record>
 
 </odoo>
