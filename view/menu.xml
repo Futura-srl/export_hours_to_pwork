@@ -10,9 +10,9 @@
     <!-- MENU ACTION -->
 
 
-        <menuitem id="fleet_fuel_company_menu_action"
+<!--         <menuitem id="fleet_fuel_company_menu_action"
     action="fleet_fuel_driver"
     parent="carburante.fleet_fuel_menu_category"
-    name="Fuel driver"/>
+    name="Fuel driver"/> -->
 
 </odoo>
