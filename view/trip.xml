@@ -10,7 +10,8 @@
                            statusbar_visible="draft,ready,planning,partially,planned,running,done,cancel,checked"/>
             </xpath>
             <xpath expr="//field[@name='trip_end_from_survey']" position="after">
-                <field name="drivers_payment" readonly="[('state', 'in', ['checked'])]"/>
+                <!-- <field name="drivers_payment" readonly="[('state', 'in', ['checked'])]"/> -->
+                <field name="drivers_payment" readonly="state in ('checked')"/>
                 <field name="all_drivers_ids" widget="many2many_tags"/>
             </xpath>
         </field>
@@ -22,13 +23,14 @@
         <field name="inherit_id" ref="gtms_inspection_survey.trip_form_view"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='trip_start_from_survey']" position="replace">
-                <field name="trip_start_from_survey" readonly="[('state', '=', 'checked')]"/>
+                <!--<field name="trip_start_from_survey" readonly="[('state', '=', 'checked')]"/>-->
+                <field name="trip_start_from_survey" readonly="state in ('checked')" />
             </xpath>
             <xpath expr="//field[@name='trip_end_from_survey']" position="replace">
-                <field name="trip_end_from_survey" readonly="[('state', '=', 'checked')]"/>
+               <!-- <field name="trip_end_from_survey" readonly="[('state', '=', 'checked')]"/>-->
+                <field name="trip_end_from_survey" readonly="state in ('checked')" />
             </xpath>
             <xpath expr="//field[@name='trip_end_from_survey']" position="after">
-                # il campo sara' di colore rosso se negativo e i colore verde se positivo. Giallo se supera le 14 ore
                 <field name="total_hour_payment" invisible="True" />
 
                 <field name="total_hour_payment" widget="float_time" readonly="True" decoration-success="total_hour_payment &gt; 0" decoration-warning="total_hour_payment &gt; 13.59" decoration-danger="total_hour_payment &lt; 0" decoration-bf="1" style="font-size: large"/>
@@ -85,7 +87,7 @@
         </field>
     </record>
 
-    
+
 
     <record id="gtms_trip_tree_inherit" model="ir.ui.view">
         <field name="name">gtms.trip.tree</field>
@@ -103,5 +105,5 @@
 
 
 
-    
+
 </odoo>
