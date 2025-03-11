@@ -1,15 +1,16 @@
 <odoo>
 
-    <record model="ir.ui.view" id="hr_timesheet_line_tree_inherit">
-        <field name="name">account.analytic.line</field>
+    <record model="ir.ui.view" id="hr_timesheet_line_tree_inherit_!">
+        <field name="name">account.analytic.line.tree.hr_timesheet</field>
         <field name="model">account.analytic.line</field>
         <field name="inherit_id" ref="hr_timesheet.hr_timesheet_line_tree"/>
         <field name="arch" type="xml">
             <xpath expr="//tree" position="inside">
-                <field name="gtms_id" readonly="[('validated', '=', True)]"/>
-                <field name="validated_status" readonly="[('validated', '=', True)]"/>
-                <field name="datetime_start"  readonly="[('validated', '=', True)]"/>
-                <field name="datetime_stop"  readonly="[('validated', '=', True)]"/>
+                <field name="validated" optional="hide"/>
+                <field name="gtms_id"/>
+                <field name="validated_status" readonly="validated == True"/>
+                <field name="datetime_start"  readonly="validated == True"/>
+                <field name="datetime_stop"  readonly="validated == True"/>
                 <field name="error_txt" groups="Diritti.developer_group" optional="hide" readonly="1"/>
                 <!-- Bottone per aprire la form view -->
                 <button name="action_open_form_view" type="object" string="Open" class="oe_highlight" groups="Diritti.developer_group"/>
@@ -19,10 +20,10 @@
                 <attribute name="decoration-danger">validated_status == 'error'</attribute>
             </xpath>
             <xpath expr="//field[@name='employee_id']" position="replace">
-                <field name="employee_id" readonly="[('validated', '=', True)]" required="True"/>
+                <field name="employee_id" readonly="validated == True" required="True"/>
             </xpath>
             <!-- <xpath expr="//field[@name='processed']" position="after">
-                
+
             </xpath> -->
         </field>
     </record>
@@ -45,7 +46,7 @@
                         <field name="pwork"/>
                         <field name="processed"/>
                         <field name="error_txt" groups="Diritti.developer_group" readonly="0"/>
-                        <field name="employee_id" readonly="[('validated', '=', True)]" required="True"/>
+                        <field name="employee_id" readonly="validated == True" required="True"/>
                     </group>
                 </sheet>
                 <div class="oe_chatter">
@@ -64,7 +65,7 @@
         <field name="state">code</field>
         <field name="code">records.processing_to_pwork()</field>
     </record>
-    
+
     <!-- <record id="model_account_analytic_line_action_unchecked" model="ir.actions.server">
         <field name="name">Upload to Pwork</field>
         <field name="model_id" ref="analytic.model_account_analytic_line"/>
@@ -73,7 +74,7 @@
         <field name="state">code</field>
         <field name="code">records.upload_to_pwork()</field>
     </record> -->
-    
+
     <!-- <record id="model_account_analytic_line_action_upload_to_pwork_table" model="ir.actions.server">
         <field name="name">Upload to Pwork Table</field>
         <field name="model_id" ref="analytic.model_account_analytic_line"/>
@@ -91,7 +92,7 @@
         <field name="state">code</field>
         <field name="code">records.check_remnants_trips()</field>
     </record>
-    
+
     <record id="model_gtms_trip_action_check_remnants_trips" model="ir.actions.server">
         <field name="name">Processing to Pwork V2</field>
         <field name="model_id" ref="analytic.model_account_analytic_line"/>
@@ -109,6 +110,6 @@
         <field name="state">code</field>
         <field name="code">records.overlapping_time_management()</field>
     </record>
-    
-    
+
+
 </odoo>
