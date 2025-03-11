@@ -5,11 +5,11 @@
         <field name="res_model">res.config.settings</field>
         <field name="view_mode">form</field>
         <field name="target">inline</field>
-        <field name="context">{'module' : 'pwork_settings', 'bin_size': False}</field>
+        <field name="context">{'module' : 'export_hours_to_pwork', 'bin_size': False}</field>
     </record>
 
 
-    <record id="res_config_settings_view_form" model="ir.ui.view">
+    <record id="pwork_res_config_settings_view_form" model="ir.ui.view">
         <field name="name">res.config.settings.pwork.view.form.inherit</field>
         <field name="model">res.config.settings</field>
         <field name="priority" eval="15"/>
@@ -52,8 +52,8 @@
         </field>
     </record>
 
-   
-    
 
-    
+
+
+
 </odoo>
