@@ -4,3 +4,4 @@ from . import trip_type
 from . import account_analytic_line
 from . import account_analytic_line_pwork
 from . import res_config_settings
+from . import trip_vehicle_manager
