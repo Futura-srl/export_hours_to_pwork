@@ -5,11 +5,12 @@
     'application': True,
     'description': "Con questo modulo è possibile esportare le ore dal Tms a Pwork",
     'depends': [
-        'gtms','hr_timesheet', 'gtms_inspection_survey', 'gtms_fleet_organization','carburante'],
+        'gtms','hr_timesheet', 'gtms_inspection_survey', 'gtms_fleet_organization','carburante', 'base_automation'],
     'data': [
         # # # Settaggi per accesso ai contenuti
         'data/ir.model.access.csv',
         'data/scheduled_action.xml',
+        'data/automation_rule.xml',
         # # # Caricamento delle view,
         'view/trip_states.xml',
         'view/trip.xml',

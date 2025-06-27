@@ -19,7 +19,7 @@ class Trip(models.Model):
     check = fields.Boolean(default=False)
     trip_start_from_survey = fields.Datetime()
     trip_end_from_survey = fields.Datetime()
-    drivers_payment = fields.Selection([('ore_pianificate','Ore pianificate'),('ore_effettive','Ore effettive'),('ore_macarena','Ore Mix 1'),('ore_macarena_inverso','Ore Mix inverso'),('non_pagabile','Non pagare')], default='ore_pianificate')
+    drivers_payment = fields.Selection([('ore_pianificate','Ore pianificate'),('ore_effettive','Ore effettive'),('ore_macarena','Ore Mix 1'),('ore_macarena_inverso','Ore Mix inverso'),('non_pagabile','Non pagare')], store=True)
     all_drivers_ids = fields.One2many('res.partner', compute="_find_all_drivers_ids")
 
     state = fields.Selection(_states_list,
@@ -82,6 +82,21 @@ class Trip(models.Model):
                 record.total_hour_payment = 0
             else:
                 record.total_hour_payment = 0
+
+
+    # DA VEDERTE COSA FARE, PROBABILE CHE DEBBA METTERE UNA FUNZIONE CHE SI AUTOCICLI PER SISTEMARE IN UN SECONDO MOMENTO.
+
+    def get_drivers_payment(self):
+        _logger.info("Avvio get_default_drivers_payment")
+        trips = self.env['gtms.trip'].search([('drivers_payment', '=', False)])
+        for record in trips:
+            if record.drivers_payment != False:
+                continue
+            else:
+                _logger.info(f"Record: {record}")
+                _logger.info(f"self.drivers_payment: {record.drivers_payment}")
+                record.drivers_payment = record.trip_type_id.default_drivers_payment
+
 
 
     def _find_all_drivers_ids(self):

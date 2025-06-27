@@ -8,6 +8,7 @@
             <xpath expr="//field[@name='company_id']" position="after">
                 <field name="task_id"/>
                 <field name="causale_pwork"/>
+                <field name="default_drivers_payment"/>
             </xpath>
         </field>
     </record>
