@@ -84,17 +84,17 @@ class Trip(models.Model):
                 record.total_hour_payment = 0
 
 
-    # DA VEDERTE COSA FARE, PROBABILE CHE DEBBA METTERE UNA FUNZIONE CHE SI AUTOCICLI PER SISTEMARE IN UN SECONDO MOMENTO.
-
+    # Funzione che recupera il valore predefinito e lo assegna al viaggio
     def get_drivers_payment(self):
-        _logger.info("Avvio get_default_drivers_payment")
+        # _logger.info("Avvio get_default_drivers_payment")
         trips = self.env['gtms.trip'].search([('drivers_payment', '=', False)])
         for record in trips:
-            if record.drivers_payment != False:
+            # se il record e' stato creato con data <= al 1 luglio 2025 oppure ha gia' un metodo di pagamento impostato, salto
+            if record.create_on <= datetime.datetime(2025, 7, 1) or record.drivers_payment != False:
                 continue
             else:
-                _logger.info(f"Record: {record}")
-                _logger.info(f"self.drivers_payment: {record.drivers_payment}")
+                # _logger.info(f"Record: {record}")
+                # _logger.info(f"self.drivers_payment: {record.drivers_payment}")
                 record.drivers_payment = record.trip_type_id.default_drivers_payment
 
 
