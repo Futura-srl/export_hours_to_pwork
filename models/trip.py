@@ -90,7 +90,7 @@ class Trip(models.Model):
         trips = self.env['gtms.trip'].search([('drivers_payment', '=', False)])
         for record in trips:
             # se il record e' stato creato con data <= al 1 luglio 2025 oppure ha gia' un metodo di pagamento impostato, salto
-            if record.create_on <= datetime.datetime(2025, 7, 1) or record.drivers_payment != False:
+            if record.create_date <= datetime.datetime(2025, 7, 1) or record.drivers_payment != False:
                 continue
             else:
                 # _logger.info(f"Record: {record}")
