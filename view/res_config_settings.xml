@@ -45,6 +45,10 @@
                                 <span class="o_form_label">Token:</span><br/>
                                 <field name="pwork_token"/>
                             </div>
+                            <div class="o_setting_right_pane">
+                                <span class="o_form_label">Test:</span><br/>
+                                <field name="pwork_test"/>
+                            </div>
                         </div>
                     </div>
                 </app>
