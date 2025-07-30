@@ -104,7 +104,13 @@ class AccountAnalyticLine(models.Model):
         for record in self:
         # Cerco se vi sono viaggi con il dipendente e data precisa ancora non nello stato "checked" o "cancel", nel caso mostro un avviso che non è possibile esportare le ore su Pwork in quanto vi sono ancora viaggi da gestire per quel dipendente.
             # employee_id = record.employee_id.id
-            driver_id = self.env['hr.employee'].search_read([('id', '=', employee_id)], ['address_home_id'])[0]['address_home_id'][0]
+            _logger.debug(f"controllo i viaggi rimanenti di {record.employee_id.name} con id {employee_id} in data {date}")
+            driver_id = self.env['hr.employee'].search_read([('id', '=', employee_id)], ['address_home_id'])
+            _logger.debug(f"Employee ID: {driver_id}")
+            _logger.debug(f"Employee ID: {driver_id[0]}")
+            _logger.debug(f"Employee ID: {driver_id[0]['address_home_id']}")
+            _logger.debug(f"Employee ID: {driver_id[0]['address_home_id'][0]}")
+            driver_id = driver_id[0]['address_home_id'][0]
             # date = record.date
             trips_open = self.env['gtms.trip'].search_read([('state', 'not in', ['checked', 'cancel']), ('current_driver_id.id', '=', driver_id), ('competence_date', '=', date)], ['id','competence_date','current_driver_id','state','name'])
             _logger.info("XXXXXXXXXXXXXXXXXX")
