@@ -72,7 +72,7 @@
               parent="hr_timesheet.menu_hr_time_tracking"
               action="action_account_analytic_line_pwork"
               name="Timesheet Pwork"
-              groups="Diritti.developer_group, fleet.fleet_group_manager"/>
+              groups="Diritti.developer_group,fleet.fleet_group_manager"/>
 
     <record id="model_account_analytic_line_action_upload_pwork" model="ir.actions.server">
         <field name="name">Upload to Pwork</field>
