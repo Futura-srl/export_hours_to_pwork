@@ -111,5 +111,14 @@
         <field name="code">records.overlapping_time_management()</field>
     </record>
 
+    <record id="model_gtms_trip_action_overlapping_trips" model="ir.actions.server">
+        <field name="name">Recupero viaggi sovrapposti</field>
+        <field name="model_id" ref="analytic.model_account_analytic_line"/>
+        <field name="binding_model_id" ref="analytic.model_account_analytic_line"/>
+        <field name="groups_id" eval="[(4, ref('Diritti.developer_group'))]"/>
+        <field name="state">code</field>
+        <field name="code">records.overlapping_trips()</field>
+    </record>
+
 
 </odoo>

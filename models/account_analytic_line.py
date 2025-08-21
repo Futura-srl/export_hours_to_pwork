@@ -325,7 +325,38 @@ class AccountAnalyticLine(models.Model):
         _logger.info(da_stampare)
         _logger.info("----------------------------------")
                     
-                
+    # Creo una funzione che mi dica tutti i viaggi sovrapposti in una volta sola:
+    def overlapping_trips(self):
+        text = ""
+        _logger.info(self)
+        da_stampare = ""
+        employees = []
+        # all_timesheet = self.env['account.analytic.line'].search([('id', '!=', 0), ('validated_status', '=', 'draft')])
+        _logger.info(self)
+        for timesheet in self:
+            employees.append(timesheet.employee_id)
+        employees = list(set(employees))
+        # Ciclo tutti i dipendenti e trovo i relativi timesheet messi in ordine di inizio turno (datetime_start)
+        for employee in employees:
+            employee_timesheets = self.env['account.analytic.line'].search([('employee_id', '=', employee.id), ('id', 'in', self.ids)],
+                                                                           order="datetime_start asc")
+            i = 0
+            _logger.info(len(employee_timesheets) - 1)
+            for employee_timesheet in employee_timesheets:
+                if i == 0:
+                    i += 1
+                    continue
+                frase_1 = f"turno corrente id: {employee_timesheet.id}, start: {employee_timesheet.datetime_start}, end: {employee_timesheet.datetime_stop}"
+                frase_2 = f"turno precedente id: {employee_timesheets[i - 1].id}, start: {employee_timesheets[i - 1].datetime_start}, end: {employee_timesheets[i - 1].datetime_stop}"
+                _logger.info(frase_1)
+                _logger.info(frase_2)
+                if employee_timesheet.datetime_start == False or employee_timesheet.datetime_stop == False:
+                    continue
+                # Controllo se il turno di fine del record corrente è antecedente al alla fine del turno del record precedente
+                if employee_timesheets[i - 1].datetime_stop > employee_timesheet.datetime_stop:
+                    text += f"id viaggi {employee_timesheets[i - 1].gtms_id.id} e {employee_timesheet.gtms_id.id}\n"
+        if text != "":
+            raise ValidationError(_(f"Di seguito tutti i viaggi sovrapposti:\n{text}"))
 
     def action_open_form_view(self):
         _logger.info("STAMPO SELF")
