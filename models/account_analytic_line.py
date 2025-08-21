@@ -309,7 +309,7 @@ class AccountAnalyticLine(models.Model):
                     continue
                 # Controllo se il turno di fine del record corrente è antecedente al alla fine del turno del record precedente
                 if employee_timesheets[i-1].datetime_stop > employee_timesheet.datetime_stop:
-                    raise ValidationError(_(f"Il dipendente {employee.name} con id {employee.id} - ha dei viaggi sovrapposti nei seguenti datetime: {employee_timesheets[i-1].datetime_stop} e {employee_timesheet.datetime_stop} - id viaggi {employee_timesheets[i-1].trip_id.id} e {employee_timesheet.trip_id.id}"))
+                    raise ValidationError(_(f"Il dipendente {employee.name} con id {employee.id} - ha dei viaggi sovrapposti nei seguenti datetime: {employee_timesheets[i-1].datetime_stop} e {employee_timesheet.datetime_stop} - id viaggi {employee_timesheets[i-1].gtms_id.id} e {employee_timesheet.gtms_id.id}"))
                 # Controllo se il turno di inzio del record corrente è antecedente al alla fine del turno del record precedente
                 if employee_timesheet.datetime_start < employee_timesheets[i-1].datetime_stop:
                     frase_3 = 'Il turno corrente è iniziato prima della fine del turno precedente'
