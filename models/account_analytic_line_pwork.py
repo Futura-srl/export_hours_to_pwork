@@ -175,11 +175,9 @@ class AccountAnalyticLine(models.Model):
         result = root.find('.//{https://presenze-online.it/}setTimbraResult').text.strip()
         data = json.loads(result)
         _logger.info(data)
-        if data['ckResponse']['Esito'] == 1:
-            if data['ckResponse']['MessaggioErrore']:
-                return False, data['ckResponse']['MessaggioErrore'], True
+        if data['ckResponse']['Esito'] != 2:
+            return False, data, True
         else:
-            if data['ckResponse']['Esito'] == 2:
-                return True, data, False
+            return True, data, False
         
 
