@@ -17,27 +17,18 @@ class ResConfigSettings(models.TransientModel):
 
     pwork_test = fields.Boolean(string="Test Mode", config_parameter="export_hours_to_pwork.pwork_test")
 
-
     @api.model
     def get_values(self):
         res = super(ResConfigSettings, self).get_values()
-        config_obj = self.env['ir.config_parameter']
-        pwork_username = config_obj.sudo().get_param('export_hours_to_pwork.pwork_username')
-        pwork_password = config_obj.sudo().get_param('export_hours_to_pwork.pwork_password')
-        pwork_ip = config_obj.sudo().get_param('export_hours_to_pwork.pwork_ip')
-        pwork_session = config_obj.sudo().get_param('export_hours_to_pwork.pwork_session')
-        pwork_cod_azienda = config_obj.sudo().get_param('export_hours_to_pwork.pwork_cod_azienda')
-        pwork_token = config_obj.sudo().get_param('export_hours_to_pwork.pwork_token')
-        pwork_test = config_obj.sudo().get_param('export_hours_to_pwork.pwork_test')
-
+        config = self.env['ir.config_parameter'].sudo()
         res.update(
-            pwork_username=str(pwork_username),
-            pwork_password=str(pwork_password),
-            pwork_ip = str(pwork_ip),
-            pwork_session = str(pwork_session),
-            pwork_cod_azienda = str(pwork_cod_azienda),
-            pwork_token = str(pwork_token),
-            pwork_test = bool(pwork_test)
+            pwork_username=config.get_param('export_hours_to_pwork.pwork_username') or '',
+            pwork_password=config.get_param('export_hours_to_pwork.pwork_password') or '',
+            pwork_ip=config.get_param('export_hours_to_pwork.pwork_ip') or '',
+            pwork_session=config.get_param('export_hours_to_pwork.pwork_session') or '',
+            pwork_cod_azienda=config.get_param('export_hours_to_pwork.pwork_cod_azienda') or '',
+            pwork_token=config.get_param('export_hours_to_pwork.pwork_token') or '',
+            pwork_test=config.get_param('export_hours_to_pwork.pwork_test') == 'True',
         )
         return res
 
@@ -61,15 +52,15 @@ class ResConfigSettings(models.TransientModel):
         params.set_param('export_hours_to_pwork.pwork_test', pwork_test)
 
     def get_token_from_pwork(self):
-        datas = self.env['res.config.settings'].search_read([], ['pwork_username','pwork_password','pwork_ip','pwork_session','pwork_cod_azienda','pwork_token'], order="id desc", limit=1)
-        for data in datas:
-            
-            pwork_username = data['pwork_username']
-            pwork_password = data['pwork_password']
-            pwork_ip = data['pwork_ip']
-            pwork_session = data['pwork_session']
-            pwork_cod_azienda = data['pwork_cod_azienda']
-            _logger.info(data)
+        config = self.env['ir.config_parameter'].sudo()
+
+        pwork_username = config.get_param('export_hours_to_pwork.pwork_username') or ''
+        pwork_password = config.get_param('export_hours_to_pwork.pwork_password') or ''
+        pwork_ip = config.get_param('export_hours_to_pwork.pwork_ip') or ''
+        pwork_session = config.get_param('export_hours_to_pwork.pwork_session') or ''
+        pwork_cod_azienda = config.get_param('export_hours_to_pwork.pwork_cod_azienda') or ''
+        pwork_token = config.get_param('export_hours_to_pwork.pwork_token') or ''
+
 
         _logger.info("Avvio connessione")
     
@@ -143,10 +134,20 @@ class ResConfigSettings(models.TransientModel):
         _logger.info("Key public: " + key_public)
 
         params = self.env['ir.config_parameter'].sudo()
-        params.set_param('pwork_username', pwork_username)
-        params.set_param('pwork_password', pwork_password)
-        params.set_param('pwork_ip', pwork_ip)
-        params.set_param('pwork_session', pwork_session)
-        params.set_param('pwork_cod_azienda', pwork_cod_azienda)
-        params.set_param('pwork_token', TOKEN)
-        _logger.info(self.env['res.config.settings'].search_read([], ['pwork_username','pwork_password','pwork_ip','pwork_session','pwork_cod_azienda','pwork_token'], order="id desc", limit=1))
+        params.set_param('export_hours_to_pwork.pwork_username', pwork_username)
+        params.set_param('export_hours_to_pwork.pwork_password', pwork_password)
+        params.set_param('export_hours_to_pwork.pwork_ip', pwork_ip)
+        params.set_param('export_hours_to_pwork.pwork_session', pwork_session)
+        params.set_param('export_hours_to_pwork.pwork_cod_azienda', pwork_cod_azienda)
+        params.set_param('export_hours_to_pwork.pwork_token', TOKEN)
+
+        config = self.env['ir.config_parameter'].sudo()
+
+        _logger.info({
+            'pwork_username': config.get_param('export_hours_to_pwork.pwork_username'),
+            'pwork_password': config.get_param('export_hours_to_pwork.pwork_password'),
+            'pwork_ip': config.get_param('export_hours_to_pwork.pwork_ip'),
+            'pwork_session': config.get_param('export_hours_to_pwork.pwork_session'),
+            'pwork_cod_azienda': config.get_param('export_hours_to_pwork.pwork_cod_azienda'),
+            'pwork_token': config.get_param('export_hours_to_pwork.pwork_token'),
+        })
