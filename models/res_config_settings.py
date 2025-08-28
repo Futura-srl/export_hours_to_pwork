@@ -146,6 +146,12 @@ class ResConfigSettings(models.TransientModel):
         params.set_param('export_hours_to_pwork.pwork_session', pwork_session)
         params.set_param('export_hours_to_pwork.pwork_cod_azienda', pwork_cod_azienda)
         params.set_param('export_hours_to_pwork.pwork_token', TOKEN)
+        params.set_param('pwork_username', pwork_username)
+        params.set_param('pwork_password', pwork_password)
+        params.set_param('pwork_ip', pwork_ip)
+        params.set_param('pwork_session', pwork_session)
+        params.set_param('pwork_cod_azienda', pwork_cod_azienda)
+        params.set_param('pwork_token', TOKEN)
 
         config = self.env['ir.config_parameter'].sudo()
 
