@@ -28,9 +28,9 @@ class Trip(models.Model):
 
     total_hour_payment = fields.Float(string="Totale ore pagate", compute="_compute_total_hour_payment")
 
-    # Questa funzione mostra un errore quando si cerca di inserire un orario di fine viaggio precedente a quello di inizio
     @api.constrains('trip_start_from_survey', 'trip_end_from_survey')
     def _check_survey_trip_dates(self):
+        """ Controlla che l'orario di fine viaggio non sia precedente a quello di inizio viaggio """
         for record in self:
             if record.state != 'done':
                 continue
@@ -39,8 +39,8 @@ class Trip(models.Model):
                     if record.trip_start_from_survey > record.trip_end_from_survey:
                         raise ValidationError(_("L'orario del sondaggio di fine viaggio non può essere precedente a quello di inizio."))
 
-    # Questa funzione calcola il totale delle ore pagate in base al metodo scelto
     def _compute_total_hour_payment(self):
+        """ Calcola il totale delle ore pagate in base al metodo scelto """
         for record in self:
             if record.drivers_payment == 'ore_pianificate':
                 if record.first_stop_planned_at and record.last_stop_planned_at:
@@ -84,8 +84,8 @@ class Trip(models.Model):
                 record.total_hour_payment = 0
 
 
-    # Funzione che recupera il valore predefinito e lo assegna al viaggio
     def get_drivers_payment(self):
+        """ Recupera il metodo di pagamento predefinito dal tipo di viaggio e lo assegna al viaggio se non è già impostato."""
         # _logger.info("Avvio get_default_drivers_payment")
         trips = self.env['gtms.trip'].search([('drivers_payment', '=', False)])
         for record in trips:
@@ -96,6 +96,66 @@ class Trip(models.Model):
                 # _logger.info(f"Record: {record}")
                 # _logger.info(f"self.drivers_payment: {record.drivers_payment}")
                 record.drivers_payment = record.trip_type_id.default_drivers_payment
+
+    def _check_overlapping_trips(self):
+        """ Controlla se ci sono viaggi con autisti in comune e orari che si sovrappongono."""
+        for record in self:
+            start_time, end_time = record._get_trip_interval()
+            if not start_time or not end_time:
+                continue
+
+            # Cerco solo viaggi "checked" degli stessi driver che
+            # hanno intervalli potenzialmente sovrapposti
+            other_trips = self.env['gtms.trip'].search([
+                ('id', '!=', record.id),
+                ('state', '=', 'checked'),
+                ('all_drivers_ids', 'in', record.all_drivers_ids.ids),
+                '|',
+                '&', ('first_stop_planned_at', '<=', end_time), ('last_stop_planned_at', '>=', start_time),
+                '&', ('trip_start_from_survey', '<=', end_time), ('trip_end_from_survey', '>=', start_time),
+            ])
+
+            overlapping = []
+
+            current_drivers = record.all_drivers_ids  # driver del viaggio corrente
+
+            for trip in other_trips:
+                other_start, other_end = trip._get_trip_interval()
+                if not other_start or not other_end:
+                    continue
+                # controllo sovrapposizione temporale
+                if other_start <= end_time and other_end >= start_time:
+                    # controllo driver in comune
+                    common_drivers = current_drivers & trip.all_drivers_ids
+                    if common_drivers:
+                        # conversione datetimes in timezone utente
+                        other_start_user = fields.Datetime.context_timestamp(self, other_start)
+                        other_end_user = fields.Datetime.context_timestamp(self, other_end)
+                        drivers = ', '.join(common_drivers.mapped('name'))
+                        label = "Autista in conflitto" if len(common_drivers) == 1 else "Autisti in conflitto"
+                        label2 = "un autista risulta già assegnato" if len(common_drivers) == 1 else "alcuni autisti risultano già assegnati"
+                        overlapping.append(
+                            f"Viaggio: {trip.name}\nIntervallo: {other_start_user.strftime('%d/%m/%Y %H:%M')} - {other_end_user.strftime('%d/%m/%Y %H:%M')}\n{label}: {drivers}"
+                        )
+
+            if overlapping:
+                raise ValidationError(_(
+                    f"Non puoi mettere il viaggio {record.name} in stato 'checked' perché {label2} ad un altro viaggio nello stesso orario:\n"
+                    + "\n".join(overlapping)
+                ))
+
+    def _get_trip_interval(self):
+        """ Restituisce (start_time, end_time) in base al drivers_payment """
+        self.ensure_one()
+        if self.drivers_payment == 'ore_pianificate':
+            return self.first_stop_planned_at, self.last_stop_planned_at
+        elif self.drivers_payment == 'ore_effettive':
+            return self.trip_start_from_survey, self.trip_end_from_survey
+        elif self.drivers_payment == 'ore_macarena':
+            return self.first_stop_planned_at, self.trip_end_from_survey
+        elif self.drivers_payment == 'ore_macarena_inverso':
+            return self.trip_start_from_survey, self.last_stop_planned_at
+        return None, None
 
 
 
@@ -184,9 +244,11 @@ class Trip(models.Model):
 
 
     def checked(self):
+        """Effettua tutti i controlli e imposta il viaggio sullo stato checked. Inoltre esporta le ore sul timesheet in base al metodo di pagamento scelto."""
         for record in self:
             if record.state == 'checked':
                 continue
+
             id = record.id
             trip = record.name
             trip_type_id = record.trip_type_id.id
@@ -252,8 +314,16 @@ class Trip(models.Model):
                 trip_start = record.trip_start_from_survey
                 trip_end = record.last_stop_planned_at
             elif driver_payment == "non_pagabile":
-                self.check = True
+                record.check = True
                 continue
+
+            # Controllo che esistano driver e veicoli
+            if not record.current_fleet_id:
+                raise ValidationError(_(f"Il viaggio non dispone di un veicolo associato"))
+            if not record.current_driver_id:
+                raise ValidationError(_(f"Il viaggio non dispone di un autista associato"))
+
+            record._check_overlapping_trips()
 
             # Facciol un controllo per evitare che l'orario di fine viaggio sia precedente a quello di inizio
             if start_time > end_time:
