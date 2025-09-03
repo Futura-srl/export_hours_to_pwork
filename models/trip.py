@@ -125,18 +125,22 @@ class Trip(models.Model):
                     continue
                 # controllo sovrapposizione temporale
                 if other_start <= end_time and other_end >= start_time:
-                    # controllo driver in comune
-                    common_drivers = current_drivers & trip.all_drivers_ids
-                    if common_drivers:
-                        # conversione datetimes in timezone utente
-                        other_start_user = fields.Datetime.context_timestamp(self, other_start)
-                        other_end_user = fields.Datetime.context_timestamp(self, other_end)
-                        drivers = ', '.join(common_drivers.mapped('name'))
-                        label = "Autista in conflitto" if len(common_drivers) == 1 else "Autisti in conflitto"
-                        label2 = "un autista risulta già assegnato" if len(common_drivers) == 1 else "alcuni autisti risultano già assegnati"
-                        overlapping.append(
-                            f"Viaggio: {trip.name}\nIntervallo: {other_start_user.strftime('%d/%m/%Y %H:%M')} - {other_end_user.strftime('%d/%m/%Y %H:%M')}\n{label}: {drivers}"
-                        )
+                    # consento solo se il viaggio corrente inizia dentro l'altro
+                    # e termina dopo la sua fine
+                    if not (start_time >= other_start and end_time > other_end):
+                        # controllo driver in comune
+                        common_drivers = current_drivers & trip.all_drivers_ids
+                        if common_drivers:
+                            # conversione datetimes in timezone utente
+                            other_start_user = fields.Datetime.context_timestamp(self, other_start)
+                            other_end_user = fields.Datetime.context_timestamp(self, other_end)
+                            drivers = ', '.join(common_drivers.mapped('name'))
+                            label = "Autista in conflitto" if len(common_drivers) == 1 else "Autisti in conflitto"
+                            label2 = "un autista risulta già assegnato" if len(
+                                common_drivers) == 1 else "alcuni autisti risultano già assegnati"
+                            overlapping.append(
+                                f"Viaggio: {trip.name}\nIntervallo: {other_start_user.strftime('%d/%m/%Y %H:%M')} - {other_end_user.strftime('%d/%m/%Y %H:%M')}\n{label}: {drivers}"
+                            )
 
             if overlapping:
                 raise ValidationError(_(
