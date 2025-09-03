@@ -175,7 +175,7 @@ class Trip(models.Model):
             for trip in self:
                 trip.all_drivers_ids = False
             # Cerco tutti i record della tabella gtms.trip.vehicle.manager associati al viaggio
-            data = self.env['gtms.trip.vehicle.manager'].search_read([('trip_id', '=', self.id)],['driver_id','learning_driver_id'])
+            data = self.env['gtms.trip.vehicle.manager'].search_read([('trip_id', '=', field.id)],['driver_id','learning_driver_id'])
             for record in data:
                 if record['driver_id'] != False:
                     driver_1 = record['driver_id'][0]
