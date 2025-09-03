@@ -125,9 +125,15 @@ class Trip(models.Model):
                     continue
                 # controllo sovrapposizione temporale
                 if other_start <= end_time and other_end >= start_time:
-                    # consento solo se il viaggio corrente inizia dentro l'altro
-                    # e termina dopo la sua fine
-                    if not (start_time >= other_start and end_time > other_end):
+                    # CONSENTITO solo se:
+                    # 1. il viaggio corrente inizia dentro l'altro e finisce dopo
+                    # 2. il viaggio corrente inizia prima e finisce dentro l'altro
+                    allowed_case = (
+                            (start_time >= other_start and end_time > other_end) or
+                            (start_time < other_start and end_time <= other_end)
+                    )
+
+                    if not allowed_case:
                         # controllo driver in comune
                         common_drivers = current_drivers & trip.all_drivers_ids
                         if common_drivers:
