@@ -20,7 +20,7 @@ class Trip(models.Model):
     trip_start_from_survey = fields.Datetime()
     trip_end_from_survey = fields.Datetime()
     drivers_payment = fields.Selection([('ore_pianificate','Ore pianificate'),('ore_effettive','Ore effettive'),('ore_macarena','Ore Mix 1'),('ore_macarena_inverso','Ore Mix inverso'),('non_pagabile','Non pagare')], store=True)
-    all_drivers_ids = fields.One2many('res.partner', compute="_find_all_drivers_ids")
+    all_drivers_ids = fields.One2many('res.partner', compute="_find_all_drivers_ids", stored=True)
 
     state = fields.Selection(_states_list,
                              string='Status', readonly=True, copy=False, index=True,
@@ -168,7 +168,7 @@ class Trip(models.Model):
         return None, None
 
 
-
+    @api.depends('trip_vehicle_manager_ids')
     def _find_all_drivers_ids(self):
         for field in self:
             drivers = []
