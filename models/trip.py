@@ -438,3 +438,75 @@ class Trip(models.Model):
         #     _logger.info(record.id)
         #     drivers = self.env['gtms.trip'].search_read([('id', '=', record.id)],['name','activity_calendar_event_id','drivers_payment', 'delivery_note_ids','drivers_ids'])
         #     _logger.info(drivers)
+
+
+    # Funzione per il recupero del corretto hr.employee con contratto attivo nel momento del viaggio
+    def get_active_employee_driver(self, driver, metodo_pagamento, start_time, end_time):
+        _logger.info(f"Cerco il dipendente attivo per l'autista id {driver.id} nome {driver.name}, con metodo di pagamento {metodo_pagamento}, inizio {start_time}, fine {end_time}")
+        employees = self.env['hr.employee'].search([('address_home_id', '=', driver.id), '|', ('active', '=', False),('active', '=', True)])
+        # Per ogni dipendente associato al res.partner cerco il contratto attivo
+        if not employees:
+            raise ValidationError(_(f"L'autista {driver.name} non ha un dipendente associato. Contattare l'assistenza fornendo i dati appena forniti."))
+        for employee in employees:
+            contracts = self.env['hr.contract'].search([
+                ('employee_id', '=', employee.id),
+                ('date_start', '<=', start_time),
+                '|', ('date_end', '>=', end_time), ('date_end', '=', False),
+            ])
+            if contracts:
+                return contracts[0].employee_id.id
+
+
+    # La funzione controlla se ci sono gli orari nel timesheet per ogni driver associato al viaggio, verificando metodo di pagamento
+    def regenerate_hours_to_timesheet(self):
+        for record in self:
+            _logger.info(f"Rigenero le ore per il viaggio {record.name} con id {record.id}")
+            if record.state != 'checked':
+                raise ValidationError(_(f"Il viaggio {record.name} deve essere sullo stato 'checked' per poter rigenerare le ore sul timesheet"))
+
+            metodo_pagamento = record.drivers_payment
+            if metodo_pagamento == "non_pagabile":
+                raise ValidationError(_(f"Il viaggio {record.name} ha il metodo di pagamento 'Non pagabile', non è possibile rigenerare le ore sul timesheet"))
+            elif metodo_pagamento == "ore_pianificate":
+                ora_inizio = record.first_stop_planned_at
+                ora_fine = record.last_stop_planned_at
+            elif metodo_pagamento == "ore_effettive":
+                ora_inizio = record.trip_start_from_survey
+                ora_fine = record.trip_end_from_survey
+            elif metodo_pagamento == "ore_macarena":
+                ora_inizio = record.first_stop_planned_at
+                ora_fine = record.trip_end_from_survey
+            elif metodo_pagamento == "ore_macarena_inverso":
+                ora_inizio = record.trip_start_from_survey
+                ora_fine = record.last_stop_planned_at
+            else:
+                raise ValidationError(_(f"Il viaggio {record.name} non dispone di un metodo di pagamento per gli autisti, contattare l'assistenza fornendo i dati appena forniti."))
+            _logger.info(f"Metodo di pagamento: {metodo_pagamento}, Ora inizio: {ora_inizio}, Ora fine: {ora_fine}")
+
+            # Cerco gli orari inseriti nel Timesheet
+            work_times = self.env['account.analytic.line'].search([('gtms_id', '=', record.id)])
+            _logger.info(f"Orari trovati: {work_times}")
+
+            # Controllo quali autisti hanno le ore sul timesheet
+            drivers_with_hours = work_times.mapped('employee_id.address_home_id')
+            # Trovo gli autisti che non hanno le ore sul timesheet
+            missing_drivers = record.all_drivers_ids - drivers_with_hours
+            _logger.info(f"Autisti con ore: {drivers_with_hours}, Autisti senza ore: {missing_drivers}")
+            if missing_drivers:
+                # Se mancano dei timesheet li rigenero
+                for driver in missing_drivers:
+                    _logger.info(f"Rigenero le ore per l'autista {driver.name}")
+                    employee = self.get_active_employee_driver(driver, metodo_pagamento, ora_inizio, ora_fine)
+                    _logger.info(f"Ho trovato il dipendente con id {employee} per l'autista {driver.name}")
+                    timesheet = self.env['account.analytic.line'].create({
+                        'date': ora_inizio.date(),
+                        'project_id': record.trip_type_id.task_id.project_id.id,
+                        'task_id': record.trip_type_id.task_id.id,
+                        'employee_id': employee,
+                        'datetime_start': ora_inizio,
+                        'datetime_stop': ora_fine,
+                        # 'unit_amount': working_seconds,
+                        'name': record.name,
+                        'gtms_id': record.id,
+                    })
+                    _logger.info(f"Ho creato il timesheet con id {timesheet} per l'autista mancante")

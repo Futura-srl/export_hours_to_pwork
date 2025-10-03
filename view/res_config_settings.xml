@@ -21,34 +21,34 @@
                     <div class="row mt16 o_settings_container">
                         <div class="col-12 col-lg-6 o_setting_box">
                             <div class="o_setting_left_pane"/>
-                            <div class="o_setting_right_pane">
-                                <span class="o_form_label">Username:</span><br/>
-                                <field name="pwork_username"/>
-                            </div>
-                            <div class="o_setting_right_pane">
-                                <span class="o_form_label">Password:</span><br/>
-                                <field name="pwork_password" password="True"/>
-                            </div>
-                            <div class="o_setting_right_pane">
-                                <span class="o_form_label">IP:</span><br/>
-                                <field name="pwork_ip"/>
-                            </div>
-                            <div class="o_setting_right_pane">
-                                <span class="o_form_label">Session:</span><br/>
-                                <field name="pwork_session"/>
-                            </div>
-                            <div class="o_setting_right_pane">
-                                <span class="o_form_label">Cod azienda:</span><br/>
-                                <field name="pwork_cod_azienda"/>
-                            </div>
-                            <div class="o_setting_right_pane">
-                                <span class="o_form_label">Token:</span><br/>
-                                <field name="pwork_token"/>
-                            </div>
-                            <div class="o_setting_right_pane">
-                                <span class="o_form_label">Test:</span><br/>
-                                <field name="pwork_test"/>
-                            </div>
+<!--                            <div class="o_setting_right_pane">-->
+<!--                                <span class="o_form_label">Username:</span><br/>-->
+<!--                                <field name="pwork_username"/>-->
+<!--                            </div>-->
+<!--                            <div class="o_setting_right_pane">-->
+<!--                                <span class="o_form_label">Password:</span><br/>-->
+<!--                                <field name="pwork_password" password="True"/>-->
+<!--                            </div>-->
+<!--                            <div class="o_setting_right_pane">-->
+<!--                                <span class="o_form_label">IP:</span><br/>-->
+<!--                                <field name="pwork_ip"/>-->
+<!--                            </div>-->
+<!--                            <div class="o_setting_right_pane">-->
+<!--                                <span class="o_form_label">Session:</span><br/>-->
+<!--                                <field name="pwork_session"/>-->
+<!--                            </div>-->
+<!--                            <div class="o_setting_right_pane">-->
+<!--                                <span class="o_form_label">Cod azienda:</span><br/>-->
+<!--                                <field name="pwork_cod_azienda"/>-->
+<!--                            </div>-->
+<!--                            <div class="o_setting_right_pane">-->
+<!--                                <span class="o_form_label">Token:</span><br/>-->
+<!--                                <field name="pwork_token"/>-->
+<!--                            </div>-->
+<!--                            <div class="o_setting_right_pane">-->
+<!--                                <span class="o_form_label">Test:</span><br/>-->
+<!--                                <field name="pwork_test"/>-->
+<!--                            </div>-->
                         </div>
                     </div>
                 </app>
