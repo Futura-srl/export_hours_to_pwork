@@ -277,6 +277,16 @@ class Trip(models.Model):
             driver_id = 0
             laerning_driver_id = 0
 
+            # Controllo che il viaggio abbia i sondaggi chiusi
+            surveys = record.survey_input_ids
+            for survey in surveys:
+                if survey.state != 'done':
+                    raise UserError(_("Il viaggio disponde ancora dei sondaggi/ispezioni in stato aperto."))
+
+            # Controllo che le ore messe in pagamento non superino le 18 ore
+            if (record.drivers_payment != False or record.drivers_payment != "non_pagabile") and record.total_hour_payment >= 18:
+                raise UserError(_("Le ore messe in pagamento sono uguali o superiori a 18 ore."))
+
 
             company_id = record.company_ids[0].id
             driver_payment = record.drivers_payment
