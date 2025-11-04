@@ -68,9 +68,21 @@ class AccountAnalyticLine(models.Model):
             minuti_u = record.datetime_stop.astimezone(tz).strftime("%M")
             secondi_u = record.datetime_stop.astimezone(tz).strftime("%S")
             causale_pwork = record.causale_gtms_pwork
-            
-            # Recupero il badge del dipendente
-            badges = self.env['hr.badgespwork'].search_read([('active', '=', True), ('hr_id', '=', record.employee_id.id)],limit=1)
+
+            # Controllo se devo utilizzare il metodo vecchio oppure se usare la modalita HR1
+            switch_hr1 = self.env['ir.config_parameter'].sudo().get_param('switch_hr1')
+            if switch_hr1 == False:
+                # Recupero il badge del dipendente
+                badges = self.env['hr.badgespwork'].search_read([('active', '=', True), ('hr_id', '=', record.employee_id.id)],limit=1)
+            else:
+            #######
+            ####### PARTE HR1 PER RECUPERO BADGE CORRETTO
+            # Cerco il contratto attivo del dipendente nella data
+                contract = self.env['hr.contract'].search([('employee_id', '=', record.employee_id.id), ('date_start', '<=', record.datetime_start.date()), '|', ('date_end', '>=', record.datetime_start.date()), ('date_end', '=', False)], limit=1)
+                if contract:
+                    badges = self.env['hr.badgespwork'].search([('contract_ids', '=', contract),('active', '=', True), ('valid_from', '<=', record.datetime_start.date()), '|', ('valid_to', '>=', record.datetime_start.date()), ('valid_to', '=', False)], limit=1)
+            ######
+            ######
             for badge in badges:
                 _logger.info("Badge")
             if badges == [] or badge['name'] == False:

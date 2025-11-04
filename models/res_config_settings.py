@@ -16,6 +16,7 @@ class ResConfigSettings(models.TransientModel):
     pwork_token = fields.Char(config_parameter="export_hours_to_pwork.pwork_token")
 
     pwork_test = fields.Boolean(string="Test Mode", config_parameter="export_hours_to_pwork.pwork_test")
+    switch_hr1 = fields.Boolean(string="Switch to HR1", config_parameter="export_hours_to_pwork.switch_hr1")
 
     @api.model
     def get_values(self):
