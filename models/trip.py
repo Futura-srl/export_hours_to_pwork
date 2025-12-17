@@ -250,7 +250,9 @@ class Trip(models.Model):
 
             # Rimuovo gli orari dal timesheet
             for work_time in work_times:
-                message = f"Ho eliminato il timesheet con ID: {work_time.id} per il dipendente {work_time.employee_id.name} (ID: {work_time.employee_id.id}) relativo al viaggio {work_time.gtms_id.name} (ID Viaggio: {work_time.gtms_id.id}) con orario di inizio {work_time.datetime_start} e orario di fine {work_time.datetime_stop}, per un totale di {work_time.unit_amount} ore."
+                ore = int(work_time.unit_amount)
+                minuti = round((work_time.unit_amount - ore) * 60)
+                message = f"Ho eliminato il timesheet con ID: {work_time.id} per il dipendente {work_time.employee_id.name} (ID: {work_time.employee_id.id}) relativo al viaggio {work_time.gtms_id.name} (ID Viaggio: {work_time.gtms_id.id}) con orario di inizio {work_time.datetime_start} e orario di fine {work_time.datetime_stop}, per un totale di {ore:02d}:{minuti:02d} ore."
                 self.message_post(body=message, subtype_xmlid="mail.mt_note")
                 work_time.unlink()
             record.check = False
@@ -409,7 +411,9 @@ class Trip(models.Model):
                             'gtms_id': id,
                         })
                     # self.is_readonly = True
-                    message = f"Ho creato il timesheet con ID: {timesheet.id} per il dipendente {employee.name} (ID: {employee.id}) relativo al viaggio {trip} (ID Viaggio: {id}) con orario di inizio {timesheet.datetime_start} e orario di fine {timesheet.datetime_stop}, per un totale di {working_seconds} ore."
+                    ore = int(working_seconds)
+                    minuti = round((working_seconds - ore) * 60)
+                    message = f"Ho creato il timesheet con ID: {timesheet.id} per il dipendente {employee.name} (ID: {employee.id}) relativo al viaggio {trip} (ID Viaggio: {id}) con orario di inizio {timesheet.datetime_start} e orario di fine {timesheet.datetime_stop}, per un totale di {ore:02d}:{minuti:02d} ore."
                     self.message_post(body=message, subtype_xmlid="mail.mt_note")
                     self.check = True
 
@@ -442,7 +446,9 @@ class Trip(models.Model):
                                 'name': trip,
                                 'gtms_id': id,
                             })
-                            message = f"Ho creato il timesheet con ID: {timesheet_learning.id} per il dipendente {employee.name} (ID: {employee.id}) relativo al viaggio {trip} (ID Viaggio: {id}) con orario di inizio {timesheet_learning.datetime_start} e orario di fine {timesheet_learning.datetime_stop}, per un totale di {working_seconds} ore."
+                            ore = int(working_seconds)
+                            minuti = round((working_seconds - ore) * 60)
+                            message = f"Ho creato il timesheet con ID: {timesheet_learning.id} per il dipendente {employee.name} (ID: {employee.id}) relativo al viaggio {trip} (ID Viaggio: {id}) con orario di inizio {timesheet_learning.datetime_start} e orario di fine {timesheet_learning.datetime_stop}, per un totale di {ore:02d}:{minuti:02d} ore."
                             self.message_post(body=message, subtype_xmlid="mail.mt_note")
                             self.check = True
                     _logger.info("FINITO")
