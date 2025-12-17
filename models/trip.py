@@ -249,7 +249,10 @@ class Trip(models.Model):
                 raise ValidationError(_("Il viaggio contiene degli orari già convalidati su Pwork"))
 
             # Rimuovo gli orari dal timesheet
-            work_times.unlink()
+            for work_time in work_times:
+                message = f"Ho eliminato il timesheet con ID: {work_time.id} per il dipendente {work_time.employee_id.name} (ID: {work_time.employee_id.id}) relativo al viaggio {work_time.gtms_id.name} (ID Viaggio: {work_time.gtms_id.id}) con orario di inizio {work_time.datetime_start} e orario di fine {work_time.datetime_stop}, per un totale di {work_time.unit_amount} ore."
+                self.message_post(body=message, subtype_xmlid="mail.mt_note")
+                work_time.unlink()
             record.check = False
 
 
@@ -262,8 +265,8 @@ class Trip(models.Model):
             id = record.id
             trip = record.name
             trip_type_id = record.trip_type_id.id
-            task_id = self.env['gtms.trip.type'].search_read([('id', '=', trip_type_id)], ['task_id'])[0]['task_id'][0]
-            project_id = self.env['project.task'].search_read([('id', '=', task_id)], ['project_id'])[0]['project_id'][0]
+            task_id = self.env['gtms.trip.type'].sudo().search_read([('id', '=', trip_type_id)], ['task_id'])[0]['task_id'][0]
+            project_id = self.env['project.task'].sudo().search_read([('id', '=', task_id)], ['project_id'])[0]['project_id'][0]
 
             _logger.info(record)
             _logger.info(record.state)
@@ -353,7 +356,7 @@ class Trip(models.Model):
             working_seconds = work_time.total_seconds() / 3600.0
 
             # Cerco gli autisti che hanno guidato durante il viaggio
-            drivers = self.env['gtms.trip.vehicle.manager'].search_read([('trip_id', '=', id)],['driver_id', 'learning_driver_id'])
+            drivers = self.env['gtms.trip.vehicle.manager'].sudo().search_read([('trip_id', '=', id)],['driver_id', 'learning_driver_id'])
             # drivers = list({tuple(driver.items()) for driver in drivers})
             for driver in drivers:
                 driver_id = driver['driver_id'][0]
@@ -365,9 +368,9 @@ class Trip(models.Model):
 
 
             # Cerco il dipendente con contratto attivo al momento della partenza del viaggio
-            employees = self.env['hr.employee'].search([('address_home_id', '=', driver_id), '|', ('active', '=', False),('active', '=', True)])
+            employees = self.env['hr.employee'].sudo().search([('address_home_id', '=', driver_id), '|', ('active', '=', False),('active', '=', True)])
             if driver['learning_driver_id']:
-                employees_learning = self.env['hr.employee'].search([('address_home_id', '=', learning_driver_id), '|', ('active', '=', False),('active', '=', True)])
+                employees_learning = self.env['hr.employee'].sudo().search([('address_home_id', '=', learning_driver_id), '|', ('active', '=', False),('active', '=', True)])
                 _logger.info(employees_learning)
             _logger.info(employees)
             # Utilizzo indice per essere certo di aver controllato tutti i dipendenti associati al res.partner e nel caso non ci fossero contratti attivi eseguo l'errore
@@ -379,7 +382,7 @@ class Trip(models.Model):
                     continue
                 indice = 1 + indice
                 _logger.info(f"Indice = {indice}, len = {len(employees)}")
-                contracts = self.env['hr.contract'].search([
+                contracts = self.env['hr.contract'].sudo().search([
                     ('employee_id', '=', employee.id),
                     ('date_start', '<=', start_time),
                     '|', ('date_end', '>=', end_time), ('date_end', '=', False),
@@ -393,7 +396,7 @@ class Trip(models.Model):
 
 
                     # Creo il Timesheet
-                    timesheet = self.env['account.analytic.line'].create(
+                    timesheet = self.env['account.analytic.line'].sudo().create(
                         {
                             'date': start_time,
                             'project_id': project_id,
@@ -406,6 +409,8 @@ class Trip(models.Model):
                             'gtms_id': id,
                         })
                     # self.is_readonly = True
+                    message = f"Ho creato il timesheet con ID: {timesheet.id} per il dipendente {employee.name} (ID: {employee.id}) relativo al viaggio {trip} (ID Viaggio: {id}) con orario di inizio {timesheet.datetime_start} e orario di fine {timesheet.datetime_stop}, per un totale di {working_seconds} ore."
+                    self.message_post(body=message, subtype_xmlid="mail.mt_note")
                     self.check = True
 
                 else:
@@ -425,7 +430,7 @@ class Trip(models.Model):
                         _logger.info(contracts[0].employee_id.id)
                         employee_id = contracts[0].employee_id.id
                         if learning_driver_id:
-                            timesheet_learning = self.env['account.analytic.line'].create(
+                            timesheet_learning = self.env['account.analytic.line'].sudo().create(
                             {
                                 'date': start_time,
                                 'project_id': project_id,
@@ -437,6 +442,8 @@ class Trip(models.Model):
                                 'name': trip,
                                 'gtms_id': id,
                             })
+                            message = f"Ho creato il timesheet con ID: {timesheet_learning.id} per il dipendente {employee.name} (ID: {employee.id}) relativo al viaggio {trip} (ID Viaggio: {id}) con orario di inizio {timesheet_learning.datetime_start} e orario di fine {timesheet_learning.datetime_stop}, per un totale di {working_seconds} ore."
+                            self.message_post(body=message, subtype_xmlid="mail.mt_note")
                             self.check = True
                     _logger.info("FINITO")
 
