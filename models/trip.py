@@ -253,7 +253,7 @@ class Trip(models.Model):
                 ore = int(work_time.unit_amount)
                 minuti = round((work_time.unit_amount - ore) * 60)
                 message = f"Ho eliminato il timesheet con ID: {work_time.id} per il dipendente {work_time.employee_id.name} (ID: {work_time.employee_id.id}) relativo al viaggio {work_time.gtms_id.name} (ID Viaggio: {work_time.gtms_id.id}) con orario di inizio {work_time.datetime_start} e orario di fine {work_time.datetime_stop}, per un totale di {ore:02d}:{minuti:02d} ore."
-                self.message_post(body=message, subtype_xmlid="mail.mt_note")
+                record.message_post(body=message, subtype_xmlid="mail.mt_note")
                 work_time.unlink()
             record.check = False
 
@@ -372,7 +372,7 @@ class Trip(models.Model):
             # Cerco il dipendente con contratto attivo al momento della partenza del viaggio
             employees = self.env['hr.employee'].sudo().search([('address_home_id', '=', driver_id), ('contract_id', '!=', False), '|', ('active', '=', False),('active', '=', True)])
             if driver['learning_driver_id']:
-                employees_learning = self.env['hr.employee'].sudo().search([('address_home_id', '=', learning_driver_id), ('contract_id', '=', True), '|', ('active', '=', False),('active', '=', True)])
+                employees_learning = self.env['hr.employee'].sudo().search([('address_home_id', '=', learning_driver_id), ('contract_id', '!=', False), '|', ('active', '=', False),('active', '=', True)])
                 _logger.info(employees_learning)
             _logger.info(employees)
             # Utilizzo indice per essere certo di aver controllato tutti i dipendenti associati al res.partner e nel caso non ci fossero contratti attivi eseguo l'errore
