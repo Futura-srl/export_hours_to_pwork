@@ -59,6 +59,8 @@ class AccountAnalyticLine(models.Model):
     def upload_to_pwork(self):
         tz = pytz.timezone('Europe/Rome')  # E.g., 'Europe/Rome'
         for record in self:
+            badges = []
+            badge = []
             # if record.validated_status == 'processing' or record.validated_status == 'error':
             data_e = record.datetime_start.astimezone(tz).strftime("%d/%m/%Y")
             ore_e = record.datetime_start.astimezone(tz).strftime("%H")
