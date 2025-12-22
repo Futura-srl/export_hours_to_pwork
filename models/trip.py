@@ -414,8 +414,8 @@ class Trip(models.Model):
                     ore = int(working_seconds)
                     minuti = round((working_seconds - ore) * 60)
                     message = f"Ho creato il timesheet con ID: {timesheet.id} per il dipendente {employee.name} (ID: {employee.id}) relativo al viaggio {trip} (ID Viaggio: {id}) con orario di inizio {timesheet.datetime_start} e orario di fine {timesheet.datetime_stop}, per un totale di {ore:02d}:{minuti:02d} ore."
-                    self.message_post(body=message, subtype_xmlid="mail.mt_note")
-                    self.check = True
+                    record.message_post(body=message, subtype_xmlid="mail.mt_note")
+                    record.check = True
 
                 else:
                     continue
@@ -449,8 +449,8 @@ class Trip(models.Model):
                             ore = int(working_seconds)
                             minuti = round((working_seconds - ore) * 60)
                             message = f"Ho creato il timesheet con ID: {timesheet_learning.id} per il dipendente {employee.name} (ID: {employee.id}) relativo al viaggio {trip} (ID Viaggio: {id}) con orario di inizio {timesheet_learning.datetime_start} e orario di fine {timesheet_learning.datetime_stop}, per un totale di {ore:02d}:{minuti:02d} ore."
-                            self.message_post(body=message, subtype_xmlid="mail.mt_note")
-                            self.check = True
+                            record.message_post(body=message, subtype_xmlid="mail.mt_note")
+                            record.check = True
                     _logger.info("FINITO")
 
 
