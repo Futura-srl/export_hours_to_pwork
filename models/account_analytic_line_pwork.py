@@ -101,10 +101,11 @@ class AccountAnalyticLine(models.Model):
             response, element, error, payload = self.env['account.analytic.line.pwork'].send_timesheet(badge['name'],data_e,ore_e,minuti_e,secondi_e,causale_pwork,data_u,ore_u,minuti_u,secondi_u)
             record.pwork = response
             record.error_txt = element
+            record.payload = payload
             for timesheet in record.analytic_ids:
                 _logger.info(timesheet.id)
                 timesheet_record = self.env['account.analytic.line'].browse(timesheet.id)
-                timesheet_record.write({'pwork': response, 'error_txt': element, 'error': error, 'payload': payload})
+                timesheet_record.write({'pwork': response, 'error_txt': element, 'error': error})
 
 
     def send_timesheet(self,badge,data_e,ore_e,minuti_e,secondi_e,causale_pwork,data_u,ore_u,minuti_u,secondi_u):
