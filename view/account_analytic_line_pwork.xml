@@ -38,6 +38,7 @@
                         <field name="error_txt" readonly="1"/>
                         <field name="pwork" readonly="1"/>
                         <field name="causale_gtms_pwork" readonly="1"/>
+                        <field name="payload" readonly="1"/>
                     </group>
                     <notebook>
                         <page string="Timesheets">

@@ -21,6 +21,7 @@ class AccountAnalyticLine(models.Model):
     pwork = fields.Boolean(default=False)
     unit_amount = fields.Float(string="Hours Spent", compute="_compute_unit_amount")
     causale_gtms_pwork = fields.Char(string="Causale gtms Pwork", compute="_compute_causale_gtms_pwork")
+    payload = fields.Text(string='Payload', help="The XML payload sent to Pwork.")
 
 
     
@@ -97,13 +98,13 @@ class AccountAnalyticLine(models.Model):
             _logger.info(f"Stampo ore_u {ore_u}")
             _logger.info(f"Stampo minuti_u {minuti_u}")
             _logger.info(f"Stampo secondi_u {secondi_u}")
-            response, element, error = self.env['account.analytic.line.pwork'].send_timesheet(badge['name'],data_e,ore_e,minuti_e,secondi_e,causale_pwork,data_u,ore_u,minuti_u,secondi_u)
+            response, element, error, payload = self.env['account.analytic.line.pwork'].send_timesheet(badge['name'],data_e,ore_e,minuti_e,secondi_e,causale_pwork,data_u,ore_u,minuti_u,secondi_u)
             record.pwork = response
             record.error_txt = element
             for timesheet in record.analytic_ids:
                 _logger.info(timesheet.id)
                 timesheet_record = self.env['account.analytic.line'].browse(timesheet.id)
-                timesheet_record.write({'pwork': response, 'error_txt': element, 'error': error})
+                timesheet_record.write({'pwork': response, 'error_txt': element, 'error': error, 'payload': payload})
 
 
     def send_timesheet(self,badge,data_e,ore_e,minuti_e,secondi_e,causale_pwork,data_u,ore_u,minuti_u,secondi_u):
@@ -188,8 +189,8 @@ class AccountAnalyticLine(models.Model):
         data = json.loads(result)
         _logger.info(data)
         if data['ckResponse']['Esito'] != 2:
-            return False, data, True
+            return False, data, True, payload
         else:
-            return True, data, False
+            return True, data, False, payload
         
 
