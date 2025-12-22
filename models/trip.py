@@ -370,9 +370,9 @@ class Trip(models.Model):
 
 
             # Cerco il dipendente con contratto attivo al momento della partenza del viaggio
-            employees = self.env['hr.employee'].sudo().search([('address_home_id', '=', driver_id), '|', ('active', '=', False),('active', '=', True)])
+            employees = self.env['hr.employee'].sudo().search([('address_home_id', '=', driver_id), ('contract_id', '=', True), '|', ('active', '=', False),('active', '=', True)])
             if driver['learning_driver_id']:
-                employees_learning = self.env['hr.employee'].sudo().search([('address_home_id', '=', learning_driver_id), '|', ('active', '=', False),('active', '=', True)])
+                employees_learning = self.env['hr.employee'].sudo().search([('address_home_id', '=', learning_driver_id), ('contract_id', '=', True), '|', ('active', '=', False),('active', '=', True)])
                 _logger.info(employees_learning)
             _logger.info(employees)
             # Utilizzo indice per essere certo di aver controllato tutti i dipendenti associati al res.partner e nel caso non ci fossero contratti attivi eseguo l'errore
