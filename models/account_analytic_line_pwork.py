@@ -88,7 +88,7 @@ class AccountAnalyticLine(models.Model):
             ######
             for badge in badges:
                 _logger.info("Badge")
-            if badges == [] or badge['name'] == False:
+            if not badges or badges == [] or badge['name'] == False:
                 self.error_txt = "Badge mancante"
                 continue
             _logger.info(f"Stampo badge {badge['name']}")
