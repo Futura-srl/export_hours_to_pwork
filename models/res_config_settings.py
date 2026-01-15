@@ -18,6 +18,7 @@ class ResConfigSettings(models.TransientModel):
     pwork_test = fields.Boolean(string="Test Mode", config_parameter="export_hours_to_pwork.pwork_test")
     switch_hr1 = fields.Boolean(string="Switch to HR1", config_parameter="export_hours_to_pwork.switch_hr1")
     date_controllo_viaggi = fields.Datetime(string="Date controllo viaggi per pagamenti", config_parameter="export_hours_to_pwork.date_controllo_viaggi")
+    pwork_date_controllo_viaggi = fields.Datetime(string="Date controllo viaggi per pagamenti", config_parameter="export_hours_to_pwork.date_controllo_viaggi")
 
     @api.model
     def get_values(self):
