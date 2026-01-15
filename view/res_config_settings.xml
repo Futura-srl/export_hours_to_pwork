@@ -53,6 +53,10 @@
                                 <span class="o_form_label">Switch HR1:</span><br/>
                                 <field name="switch_hr1" widget="boolean_toggle"/>
                             </div>
+                            <div class="o_setting_right_pane">
+                                <span class="o_form_label">Controllo metodo pagamenti dal:</span><br/>
+                                <field name="date_controllo_viaggi" widget="date"/>
+                            </div>
                         </div>
                     </div>
                 </app>

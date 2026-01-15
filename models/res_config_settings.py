@@ -17,6 +17,7 @@ class ResConfigSettings(models.TransientModel):
 
     pwork_test = fields.Boolean(string="Test Mode", config_parameter="export_hours_to_pwork.pwork_test")
     switch_hr1 = fields.Boolean(string="Switch to HR1", config_parameter="export_hours_to_pwork.switch_hr1")
+    date_controllo_viaggi = fields.Datetime(string="Date controllo viaggi per pagamenti", config_parameter="export_hours_to_pwork.date_controllo_viaggi")
 
     @api.model
     def get_values(self):
@@ -30,6 +31,8 @@ class ResConfigSettings(models.TransientModel):
             pwork_cod_azienda=config.get_param('export_hours_to_pwork.pwork_cod_azienda') or '',
             pwork_token=config.get_param('export_hours_to_pwork.pwork_token') or '',
             pwork_test=config.get_param('export_hours_to_pwork.pwork_test') == 'True',
+            pwork_date_controllo_viaggi=config.get_param('export_hours_to_pwork.date_controllo_viaggi') or '',
+
         )
         return res
 
@@ -42,6 +45,7 @@ class ResConfigSettings(models.TransientModel):
         pwork_cod_azienda = self.pwork_cod_azienda
         pwork_token = self.pwork_token
         pwork_test = self.pwork_test
+        date_controllo_viaggi = self.date_controllo_viaggi
 
         params = self.env['ir.config_parameter'].sudo()
         params.set_param('export_hours_to_pwork.pwork_username', pwork_username)
@@ -51,6 +55,7 @@ class ResConfigSettings(models.TransientModel):
         params.set_param('export_hours_to_pwork.pwork_cod_azienda', pwork_cod_azienda)
         params.set_param('export_hours_to_pwork.pwork_token', pwork_token)
         params.set_param('export_hours_to_pwork.pwork_test', pwork_test)
+        params.set_param('export_hours_to_pwork.date_controllo_viaggi', pwork_test)
         params.set_param('pwork_username', pwork_username)
         params.set_param('pwork_password', pwork_password)
         params.set_param('pwork_ip', pwork_ip)

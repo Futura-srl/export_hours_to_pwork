@@ -19,7 +19,7 @@ class Trip(models.Model):
     check = fields.Boolean(default=False)
     trip_start_from_survey = fields.Datetime()
     trip_end_from_survey = fields.Datetime()
-    drivers_payment = fields.Selection([('ore_pianificate','Ore pianificate'),('ore_effettive','Ore effettive'),('ore_macarena','Ore Mix 1'),('ore_macarena_inverso','Ore Mix inverso'),('non_pagabile','Non pagare')], store=True)
+    drivers_payment = fields.Selection([('ore_pianificate','Ore pianificate'),('ore_effettive','Ore effettive'),('ore_macarena','Ore Mix 1'),('ore_macarena_inverso','Ore Mix inverso'),('non_pagabile','Non pagare')], store=True, index=True)
     all_drivers_ids = fields.One2many('res.partner', compute="_find_all_drivers_ids", stored=True)
 
     state = fields.Selection(_states_list,
@@ -90,7 +90,10 @@ class Trip(models.Model):
         trips = self.env['gtms.trip'].search([('drivers_payment', '=', False)])
         for record in trips:
             # se il record e' stato creato con data <= al 1 luglio 2025 oppure ha gia' un metodo di pagamento impostato, salto
-            if record.create_date <= datetime.datetime(2025, 7, 1) or record.drivers_payment != False:
+            # config = self.env['ir.config_parameter'].sudo()
+            # date_controllo_pagamenti = config.get_param('export_hours_to_pwork.date_controllo_viaggi')
+
+            if record.create_date <= datetime.datetime(2025, 12, 1) or record.drivers_payment != False:
                 continue
             else:
                 # _logger.info(f"Record: {record}")
