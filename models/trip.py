@@ -245,7 +245,7 @@ class Trip(models.Model):
     def unchecked(self):
         for record in self:
             # Cerco gli orari inseriti nel Timesheet prima di rimuoverli
-            work_times = self.env['account.analytic.line'].search([('gtms_id', '=', record.id)])
+            work_times = self.env['account.analytic.line'].sudo().search([('gtms_id', '=', record.id)])
 
             # Controllo se ci sono orari già convalidati
             if any(work_time.validated_status in ['validated','processed','done'] for work_time in work_times):
