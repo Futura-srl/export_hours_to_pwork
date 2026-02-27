@@ -20,7 +20,7 @@ class Trip(models.Model):
     trip_start_from_survey = fields.Datetime()
     trip_end_from_survey = fields.Datetime()
     drivers_payment = fields.Selection([('ore_pianificate','Ore pianificate'),('ore_effettive','Ore effettive'),('ore_macarena','Ore Mix 1'),('ore_macarena_inverso','Ore Mix inverso'),('non_pagabile','Non pagare')], store=True, index=True)
-    all_drivers_ids = fields.One2many('res.partner', compute="_find_all_drivers_ids", stored=True)
+    all_drivers_ids = fields.One2many('res.partner', compute="_find_all_drivers_ids", stored=True, index=True)
 
     state = fields.Selection(_states_list,
                              string='Status', readonly=True, copy=False, index=True,
@@ -171,22 +171,40 @@ class Trip(models.Model):
         return None, None
 
 
+    # @api.depends('trip_vehicle_manager_ids')
+    # def _find_all_drivers_ids(self):
+    #     for field in self:
+    #         drivers = []
+    #         for trip in self:
+    #             trip.all_drivers_ids = False
+    #         # Cerco tutti i record della tabella gtms.trip.vehicle.manager associati al viaggio
+    #         data = self.env['gtms.trip.vehicle.manager'].search_read([('trip_id', '=', field.id)],['driver_id','learning_driver_id'])
+    #         for record in data:
+    #             if record['driver_id'] != False:
+    #                 driver_1 = record['driver_id'][0]
+    #                 drivers.append(driver_1)
+    #             if record['learning_driver_id'] != False:
+    #                 driver_2 = record['learning_driver_id'][0]
+    #                 drivers.append(driver_2)
+    #         field.all_drivers_ids = list(set(drivers))
+
     @api.depends('trip_vehicle_manager_ids')
     def _find_all_drivers_ids(self):
-        for field in self:
+        for trip in self:
             drivers = []
-            for trip in self:
-                trip.all_drivers_ids = False
-            # Cerco tutti i record della tabella gtms.trip.vehicle.manager associati al viaggio
-            data = self.env['gtms.trip.vehicle.manager'].search_read([('trip_id', '=', field.id)],['driver_id','learning_driver_id'])
+
+            data = self.env['gtms.trip.vehicle.manager'].search_read(
+                [('trip_id', '=', trip.id)],
+                ['driver_id', 'learning_driver_id']
+            )
+
             for record in data:
-                if record['driver_id'] != False:
-                    driver_1 = record['driver_id'][0]
-                    drivers.append(driver_1)
-                if record['learning_driver_id'] != False:
-                    driver_2 = record['learning_driver_id'][0]
-                    drivers.append(driver_2)
-            field.all_drivers_ids = list(set(drivers))
+                if record['driver_id']:
+                    drivers.append(record['driver_id'][0])
+                if record['learning_driver_id']:
+                    drivers.append(record['learning_driver_id'][0])
+
+            trip.all_drivers_ids = list(set(drivers))
 
 
 
@@ -486,7 +504,7 @@ class Trip(models.Model):
     # La funzione controlla se ci sono gli orari nel timesheet per ogni driver associato al viaggio, verificando metodo di pagamento
     def regenerate_hours_to_timesheet(self):
         for record in self:
-            _logger.info(f"Rigenero le ore per il viaggio {record.name} con id {record.id}")
+            _logger.info(f"Rigenero le ore per il viaggio {record.name} con id {record.id} per i seguenti autisti: {record.all_drivers_ids.mapped('name')}")
             if record.state != 'checked':
                 raise ValidationError(_(f"Il viaggio {record.name} deve essere sullo stato 'checked' per poter rigenerare le ore sul timesheet"))
 
@@ -510,7 +528,7 @@ class Trip(models.Model):
             _logger.info(f"Metodo di pagamento: {metodo_pagamento}, Ora inizio: {ora_inizio}, Ora fine: {ora_fine}")
 
             # Cerco gli orari inseriti nel Timesheet
-            work_times = self.env['account.analytic.line'].search([('gtms_id', '=', record.id)])
+            work_times = self.env['account.analytic.line'].sudo().search([('gtms_id', '=', record.id)])
             _logger.info(f"Orari trovati: {work_times}")
 
             # Controllo quali autisti hanno le ore sul timesheet
@@ -522,7 +540,8 @@ class Trip(models.Model):
                 # Se mancano dei timesheet li rigenero
                 for driver in missing_drivers:
                     _logger.info(f"Rigenero le ore per l'autista {driver.name}")
-                    employee = self.get_active_employee_driver(driver, metodo_pagamento, ora_inizio, ora_fine)
+                    employee = record.get_active_employee_driver(driver, metodo_pagamento, ora_inizio, ora_fine)
+                    employee_id = self.env['hr.employee'].sudo().browse(employee)
                     _logger.info(f"Ho trovato il dipendente con id {employee} per l'autista {driver.name}")
                     timesheet = self.env['account.analytic.line'].create({
                         'date': ora_inizio.date(),
@@ -536,3 +555,9 @@ class Trip(models.Model):
                         'gtms_id': record.id,
                     })
                     _logger.info(f"Ho creato il timesheet con id {timesheet} per l'autista mancante")
+                    work_time = ora_fine - ora_inizio
+                    working_seconds = work_time.total_seconds() / 3600.0
+                    ore = int(working_seconds)
+                    minuti = round((working_seconds - ore) * 60)
+                    message = f"Ho creato il timesheet con ID: {timesheet.id} per il dipendente {employee_id.name} (ID: {employee_id.id}) relativo al viaggio {record} (ID Viaggio: {record.id}) con orario di inizio {timesheet.datetime_start} e orario di fine {timesheet.datetime_stop}, per un totale di {ore:02d}:{minuti:02d} ore."
+                    record.message_post(body=message, subtype_xmlid="mail.mt_note")
