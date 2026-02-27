@@ -203,8 +203,10 @@ class Trip(models.Model):
                     drivers.append(record['driver_id'][0])
                 if record['learning_driver_id']:
                     drivers.append(record['learning_driver_id'][0])
-
-            trip.all_drivers_ids = list(set(drivers))
+            if drivers:
+                trip.all_drivers_ids = list(set(drivers))
+            else:
+                trip.all_drivers_ids = False
 
 
 
