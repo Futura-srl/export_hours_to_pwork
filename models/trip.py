@@ -24,7 +24,7 @@ class Trip(models.Model):
 
     state = fields.Selection(_states_list,
                              string='Status', readonly=True, copy=False, index=True,
-                             default='draft', compute='_compute_state', store=True, tracking=True)
+                             default='draft', compute='_compute_operations_data', store=True, tracking=True)
 
     total_hour_payment = fields.Float(string="Totale ore pagate", compute="_compute_total_hour_payment")
 
@@ -250,9 +250,9 @@ class Trip(models.Model):
     @api.depends('check','number_of_operations_executed', 'number_of_operation_running',
                  'number_of_operation_planned', 'number_operation_partially_planned', 'number_of_operations_cancelled',
                  'is_ready', 'number_of_operations', 'is_canceled')
-    def _compute_state(self):
+    def _compute_operations_data(self):
         # Chiamata al metodo originale per mantenere le funzionalità esistenti
-        super(Trip, self)._compute_state()
+        super(Trip, self)._compute_operations_data()
 
         # Aggiungi qui le tue operazioni aggiuntive
         for trip in self:
