@@ -101,9 +101,10 @@ class Trip(models.Model):
     #             record.drivers_payment = record.trip_type_id.default_drivers_payment
 
     # Creo una funzione che gestisce il metodo di pagamento alla creazione del viaggio
+    @api.onchange('trip_type_id')
     def get_drivers_payment(self):
         for record in self:
-            if record.trip_type_id and record.drivers_payment == False and record.create_date <= datetime.datetime(2026, 2, 1):
+            if record.trip_type_id and record.drivers_payment == False:
                 record.drivers_payment = record.trip_type_id.default_drivers_payment
 
     def _check_overlapping_trips(self):
