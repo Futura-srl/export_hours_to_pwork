@@ -101,7 +101,7 @@ class Trip(models.Model):
     #             record.drivers_payment = record.trip_type_id.default_drivers_payment
 
     # Creo una funzione che gestisce il metodo di pagamento alla creazione del viaggio
-    def get_driver_payment(self):
+    def get_drivers_payment(self):
         for record in self:
             if record.trip_type_id and record.drivers_payment == False and record.create_date <= datetime.datetime(2026, 2, 1):
                 record.drivers_payment = record.trip_type_id.default_drivers_payment
