@@ -84,28 +84,28 @@ class Trip(models.Model):
                 record.total_hour_payment = 0
 
 
-    # def get_drivers_payment(self):
-    #     """ Recupera il metodo di pagamento predefinito dal tipo di viaggio e lo assegna al viaggio se non è già impostato."""
-    #     # _logger.info("Avvio get_default_drivers_payment")
-    #     trips = self.env['gtms.trip'].search([('drivers_payment', '=', False)])
-    #     for record in trips:
-    #         # se il record e' stato creato con data <= al 1 luglio 2025 oppure ha gia' un metodo di pagamento impostato, salto
-    #         # config = self.env['ir.config_parameter'].sudo()
-    #         # date_controllo_pagamenti = config.get_param('export_hours_to_pwork.date_controllo_viaggi')
-    #
-    #         if record.create_date <= datetime.datetime(2025, 12, 1) or record.drivers_payment != False:
-    #             continue
-    #         else:
-    #             # _logger.info(f"Record: {record}")
-    #             # _logger.info(f"self.drivers_payment: {record.drivers_payment}")
-    #             record.drivers_payment = record.trip_type_id.default_drivers_payment
-
-    # Creo una funzione che gestisce il metodo di pagamento alla creazione del viaggio
-    @api.onchange('trip_type_id')
     def get_drivers_payment(self):
-        for record in self:
-            if record.trip_type_id and record.drivers_payment == False:
+        """ Recupera il metodo di pagamento predefinito dal tipo di viaggio e lo assegna al viaggio se non è già impostato."""
+        # _logger.info("Avvio get_default_drivers_payment")
+        trips = self.env['gtms.trip'].search([('drivers_payment', '=', False)])
+        for record in trips:
+            # se il record e' stato creato con data <= al 1 luglio 2025 oppure ha gia' un metodo di pagamento impostato, salto
+            # config = self.env['ir.config_parameter'].sudo()
+            # date_controllo_pagamenti = config.get_param('export_hours_to_pwork.date_controllo_viaggi')
+
+            if record.create_date <= datetime.datetime(2026, 3, 1) or record.drivers_payment != False:
+                continue
+            else:
+                # _logger.info(f"Record: {record}")
+                # _logger.info(f"self.drivers_payment: {record.drivers_payment}")
                 record.drivers_payment = record.trip_type_id.default_drivers_payment
+
+    # # Creo una funzione che gestisce il metodo di pagamento alla creazione del viaggio
+    # @api.onchange('trip_type_id')
+    # def get_drivers_payment(self):
+    #     for record in self:
+    #         if record.trip_type_id and record.drivers_payment == False:
+    #             record.drivers_payment = record.trip_type_id.default_drivers_payment
 
     def _check_overlapping_trips(self):
         """ Controlla se ci sono viaggi con autisti in comune e orari che si sovrappongono."""

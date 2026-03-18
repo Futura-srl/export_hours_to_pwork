@@ -8,7 +8,8 @@
             <field name="code">records.get_drivers_payment()</field>
             <field name="usage">base_automation</field>
         </record>
-
+    </data>
+    <data noupdate="0">
         <record model="base.automation" id="automatic_driver_payment">
             <field name="name">Automatic Driver Payment</field>
             <field name="model_id" ref="gtms.model_gtms_trip"/>
