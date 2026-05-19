@@ -323,7 +323,8 @@ class Trip(models.Model):
                 raise UserError(_("Le ore messe in pagamento sono uguali o superiori a 18 ore."))
             # Stessa cosa anche per le ore del pianificato / effettivo
             if (record.drivers_payment != False or record.drivers_payment != "non_pagabile"):
-                if (record.first_stop_planned_at - record.last_stop_planned_at) >= datetime.timedelta(hours=18) or (record.trip_start_from_survey - record.trip_end_from_survey) >= datetime.timedelta(hours=18):
+                # if (record.first_stop_planned_at - record.last_stop_planned_at) >= datetime.timedelta(hours=18) or (record.trip_start_from_survey - record.trip_end_from_survey) >= datetime.timedelta(hours=18):
+                if ((record.first_stop_planned_at and record.last_stop_planned_at and (record.last_stop_planned_at - record.first_stop_planned_at) >= datetime.timedelta(hours=18)) or (record.trip_start_from_survey and record.trip_end_from_survey and (record.trip_end_from_survey - record.trip_start_from_survey) >= datetime.timedelta(hours=18))):
                     raise UserError(_("Stai confermando un viaggio in cui le ore del pianificato o dell'effettivo sono uguali o superiori alle 18 ore."))
 
 
