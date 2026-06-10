@@ -1,6 +1,6 @@
 {
     'name': 'Export hours to Pwork',
-    'version': '17.2',
+    'version': '17.0.2.1.0',
     'author': "Luca Cocozza",
     'application': True,
     'description': "Con questo modulo è possibile esportare le ore dal Tms a Pwork",
