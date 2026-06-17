@@ -99,8 +99,16 @@
                 <field name="trip_end_from_survey" optional="show"/>
                 <field name="drivers_payment" optional="show"/>
                 <field name="total_hour_payment" widget="float_time" readonly="True" decoration-success="total_hour_payment &gt; 0" decoration-warning="total_hour_payment &gt; 13.59" decoration-danger="total_hour_payment &lt; 0" decoration-bf="1" optional="show"/>
-                <field name="from_city" optional="hide"/>
-                <field name="to_city" optional="hide"/>
+                <field name="from_city" optional="hide" string="Città partenza"/>
+                <field name="from_zip" optional="hide" string="CAP partenza"/>
+                <field name="from_country_id" optional="hide" string="Stato partenza"/>
+                <field name="from_state_id" optional="hide" string="Provincia partenza"/>
+                <field name="from_street" optional="hide" string="Indirizzo partenza"/>
+                <field name="to_city" optional="hide" string="Città arrivo"/>
+                <field name="to_zip" optional="hide" string="CAP arrivo"/>
+                <field name="to_country_id" optional="hide" string="Stato arrivo"/>
+                <field name="to_state_id" optional="hide" string="Provincia arrivo"/>
+                <field name="to_street" optional="hide" string="Indirizzo arrivo"/>
             </xpath>
         </field>
     </record>
