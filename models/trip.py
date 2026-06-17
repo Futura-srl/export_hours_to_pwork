@@ -17,6 +17,7 @@ class Trip(models.Model):
 
 
     check = fields.Boolean(default=False)
+    check_by = fields.Many2one('res.users', string='Checked by', readonly=True, copy=False, index=True)
     trip_start_from_survey = fields.Datetime()
     trip_end_from_survey = fields.Datetime()
     drivers_payment = fields.Selection([('ore_pianificate','Ore pianificate'),('ore_effettive','Ore effettive'),('ore_macarena','Ore Mix 1'),('ore_macarena_inverso','Ore Mix inverso'),('non_pagabile','Non pagare')], store=True, index=True)
@@ -451,6 +452,7 @@ class Trip(models.Model):
                     message = f"Ho creato il timesheet con ID: {timesheet.id} per il dipendente {employee.name} (ID: {employee.id}) relativo al viaggio {trip} (ID Viaggio: {id}) con orario di inizio {timesheet.datetime_start} e orario di fine {timesheet.datetime_stop}, per un totale di {ore:02d}:{minuti:02d} ore."
                     record.message_post(body=message, subtype_xmlid="mail.mt_note")
                     record.check = True
+                    record.check_by = self.env.user.id
 
                 else:
                     continue
@@ -486,6 +488,7 @@ class Trip(models.Model):
                             message = f"Ho creato il timesheet con ID: {timesheet_learning.id} per il dipendente {employee.name} (ID: {employee.id}) relativo al viaggio {trip} (ID Viaggio: {id}) con orario di inizio {timesheet_learning.datetime_start} e orario di fine {timesheet_learning.datetime_stop}, per un totale di {ore:02d}:{minuti:02d} ore."
                             record.message_post(body=message, subtype_xmlid="mail.mt_note")
                             record.check = True
+                            record.check_by = self.env.user.id
                     _logger.info("FINITO")
 
 
