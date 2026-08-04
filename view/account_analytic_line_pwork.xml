@@ -3,7 +3,7 @@
         <field name="name">All Timesheets Pwork</field>
         <field name="res_model">account.analytic.line.pwork</field>
         <field name="type">ir.actions.act_window</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
         <field name="target">current</field>
     </record>
 
@@ -11,7 +11,7 @@
         <field name="name">All Timesheets Pwork</field>
         <field name="model">account.analytic.line.pwork</field>
         <field name="arch" type="xml">
-            <tree decoration-success="validated_status=='done'" decoration-danger="validated_status=='error'">
+            <list decoration-success="validated_status=='done'" decoration-danger="validated_status=='error'">
                 <field name="employee_id" readonly="1"/>
                 <field name="datetime_start"/>
                 <field name="datetime_stop"/>
@@ -20,7 +20,7 @@
                 <field name="pwork" readonly="1"/>
                 <field name="analytic_ids" readonly="1"/>
                 <field name="causale_gtms_pwork" readonly="1"/>
-            </tree>
+            </list>
         </field>
     </record>
     
@@ -42,9 +42,9 @@
                     </group>
                     <notebook>
                         <page string="Timesheets">
-                            <tree>
+                            <list>
                                 <field name="analytic_ids" readonly="1"/>
-                            </tree>
+                            </list>
                         </page>
                     </notebook>
                 </sheet>

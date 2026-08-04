@@ -5,7 +5,7 @@
         <field name="model">account.analytic.line</field>
         <field name="inherit_id" ref="hr_timesheet.hr_timesheet_line_tree"/>
         <field name="arch" type="xml">
-            <xpath expr="//tree" position="inside">
+            <xpath expr="//list" position="inside">
                 <field name="validated" optional="hide"/>
                 <field name="gtms_id"/>
                 <field name="validated_status" readonly="validated == True"/>
@@ -15,7 +15,7 @@
                 <!-- Bottone per aprire la form view -->
                 <button name="action_open_form_view" type="object" string="Open" class="oe_highlight" groups="Diritti.developer_group"/>
             </xpath>
-            <xpath expr="//tree" position="attributes">
+            <xpath expr="//list" position="attributes">
                 <attribute name="decoration-success">validated_status == 'done'</attribute>
                 <attribute name="decoration-danger">validated_status == 'error'</attribute>
             </xpath>
@@ -49,10 +49,7 @@
                         <field name="employee_id" readonly="validated == True" required="True"/>
                     </group>
                 </sheet>
-                <div class="oe_chatter">
-                    <field name="message_follower_ids"/>
-                    <field name="message_ids"/>
-                </div>
+                <chatter/>
             </form>
         </field>
     </record>
