@@ -12,7 +12,7 @@ class Trip(models.Model):
     _inherit = "gtms.trip"
 
     def _states_list(self):
-        states = self.env['gtms.trip.states'].search([])
+        states = self.env['gtms.trip.states'].sudo().search([])
         return states.mapped(lambda s: (s.name, s.description))
 
 
