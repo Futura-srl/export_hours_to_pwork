@@ -275,9 +275,11 @@ class Trip(models.Model):
             # Cerco gli orari inseriti nel Timesheet prima di rimuoverli
             work_times = self.env['account.analytic.line'].sudo().search([('gtms_id', '=', record.id)])
 
-            # Controllo se ci sono orari già convalidati
-            if any(work_time.validated_status in ['validated','processed','done'] for work_time in work_times):
-                raise ValidationError(_("Il viaggio contiene degli orari già convalidati su Pwork"))
+            # Controllo se ci sono orari già validati o già avviati verso Pwork.
+            # Si guardano i campi memorizzati e non validated_status: quello è calcolato e torna 'draft'
+            # se un timesheet già elaborato viene riportato in bozza
+            if any(work_time.validated or work_time.processed or work_time.pwork for work_time in work_times):
+                raise ValidationError(_("Il viaggio contiene degli orari già validati o caricati su Pwork"))
 
             # Rimuovo gli orari dal timesheet
             for work_time in work_times:
@@ -456,12 +458,18 @@ class Trip(models.Model):
 
                 else:
                     continue
-                if indice == len(employees) and not contracts and not timesheet:
-                    raise ValidationError(_(f"Il dipendente {employee.name} con id {employee.id} attualmente non ha alcun contratto valido. Contattare l'assistenza fornendo i dati appena forniti."))
+
+            # Nessun dipendente dell'autista ha un contratto valido nelle date del viaggio
+            if not timesheet:
+                autista = self.env['res.partner'].sudo().browse(driver_id)
+                raise ValidationError(_(f"L'autista {autista.name} non ha un contratto valido dal {start_time.strftime('%d/%m/%Y')} al {end_time.strftime('%d/%m/%Y')}: il viaggio {trip} non può essere messo in checked. Contattare l'ufficio HR."))
 
             if driver['learning_driver_id']:
+                timesheet_learning = False
                 for employee in employees_learning:
-                    contracts = self.env['hr.contract'].search([
+                    # In sudo come per l'autista: i ROP non vedono i contratti dei dipendenti e
+                    # senza sudo le ore dell'allievo venivano saltate
+                    contracts = self.env['hr.contract'].sudo().search([
                         ('employee_id', '=', employee.id),
                         ('date_start', '<=', start_time),
                         '|', ('date_end', '>=', end_time), ('date_end', '=', False)
@@ -491,6 +499,11 @@ class Trip(models.Model):
                             record.check_by = self.env.user.id
                     _logger.info("FINITO")
 
+                # Stesso controllo per l'allievo: senza contratto le sue ore andrebbero perse
+                if not timesheet_learning:
+                    allievo = self.env['res.partner'].sudo().browse(learning_driver_id)
+                    raise ValidationError(_(f"L'allievo {allievo.name} non ha un contratto valido dal {start_time.strftime('%d/%m/%Y')} al {end_time.strftime('%d/%m/%Y')}: il viaggio {trip} non può essere messo in checked. Contattare l'ufficio HR."))
+
 
     def test(self):
         _logger.info(self)
@@ -516,6 +529,9 @@ class Trip(models.Model):
             ])
             if contracts:
                 return contracts[0].employee_id.id
+        # Nessun contratto valido: senza questo errore il timesheet partiva senza dipendente e Odoo
+        # rispondeva con un messaggio generico
+        raise ValidationError(_(f"L'autista {driver.name} non ha un contratto valido dal {start_time.strftime('%d/%m/%Y')} al {end_time.strftime('%d/%m/%Y')}: non è possibile generare le sue ore per il viaggio {self.name}. Contattare l'ufficio HR."))
 
 
     # La funzione controlla se ci sono gli orari nel timesheet per ogni driver associato al viaggio, verificando metodo di pagamento

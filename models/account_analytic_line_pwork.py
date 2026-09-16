@@ -89,7 +89,7 @@ class AccountAnalyticLine(models.Model):
             for badge in badges:
                 _logger.info("Badge")
             if not badges or badges == [] or badge['name'] == False:
-                self.error_txt = "Badge mancante"
+                record.error_txt = "Badge mancante"
                 continue
             _logger.info(f"Stampo badge {badge['name']}")
             _logger.info(f"Stampo data_e {data_e}")

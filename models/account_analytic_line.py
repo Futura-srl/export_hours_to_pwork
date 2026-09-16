@@ -33,7 +33,16 @@ class AccountAnalyticLine(models.Model):
             working_seconds = work_time.total_seconds() / 3600.0
             res.write({'unit_amount': working_seconds})
         return res
-            
+
+    def write(self, vals):
+        # Un timesheet già elaborato per Pwork non può tornare in bozza (es. "Reimposta a bozza"):
+        # tornerebbe uncheckabile e il viaggio potrebbe cancellarlo con le ore già in caricamento
+        if 'validated' in vals and not vals['validated']:
+            elaborati = self.filtered(lambda line: line.processed or line.pwork)
+            if elaborati:
+                raise UserError(_(f"Non è possibile riportare in bozza timesheet già elaborati o caricati su Pwork (ID: {', '.join(str(i) for i in elaborati.ids)})"))
+        return super(AccountAnalyticLine, self).write(vals)
+
 
     @api.onchange('datetime_start', 'datetime_stop')
     def _compute_unit_amount(self):

@@ -1,6 +1,6 @@
 {
     'name': 'Export hours to Pwork',
-    'version': '17.0.2.2.1',
+    'version': '17.0.2.2.2',
     'license': 'OPL-1',
     'author': "Luca Cocozza",
     'application': True,
