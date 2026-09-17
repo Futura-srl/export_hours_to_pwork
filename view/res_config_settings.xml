@@ -59,6 +59,58 @@
 <!--                            </div>-->
                         </div>
                     </div>
+                    <h2>Caricamento automatico e chiusura del mese</h2>
+                    <div class="row mt16 o_settings_container">
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_right_pane">
+                                <span class="o_form_label">Usa il metodo precedente:</span><br/>
+                                <field name="pwork_metodo_precedente" widget="boolean_toggle"/>
+                                <div class="text-muted">Disattiva la nuova gestione: niente caricamento automatico, chiusura del mese e controllo HR; checked e gestione turni sovrapposti tornano come prima. Registro degli invii e blocco sulle copie restano attivi</div>
+                            </div>
+                            <div class="o_setting_right_pane">
+                                <span class="o_form_label">Caricamento automatico ore:</span><br/>
+                                <field name="pwork_caricamento_automatico" widget="boolean_toggle"/>
+                                <div class="text-muted">Carica in ordine i giorni fino a ieri, appena tutti i loro viaggi (e quelli del giorno prima) sono checked</div>
+                            </div>
+                            <div class="o_setting_right_pane">
+                                <span class="o_form_label">Chiusura mese automatica:</span><br/>
+                                <field name="pwork_chiusura_automatica" widget="boolean_toggle"/>
+                                <div class="text-muted">Chiude il mese finito quando tutti i viaggi sono checked e tutti i timesheet validati</div>
+                            </div>
+                            <div class="o_setting_right_pane">
+                                <span class="o_form_label">Ultimo mese chiuso:</span><br/>
+                                <field name="pwork_mese_chiuso" class="w-auto"/>
+                                <field name="pwork_anno_chiuso" class="w-auto" options="{'format': false}"/>
+                                <div class="text-muted">Mese interamente gestito: le sue ore non si caricano più. Si può cambiare a mano per chiudere o riaprire</div>
+                            </div>
+                            <div class="o_setting_right_pane">
+                                <span class="o_form_label">Giorno di scadenza chiusura:</span><br/>
+                                <field name="pwork_giorno_scadenza_chiusura"/>
+                                <div class="text-muted">Con la chiusura automatica attiva: a questo giorno del mese successivo si carica quello che è checked e il mese si chiude comunque (0 = nessuna scadenza)</div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_right_pane">
+                                <span class="o_form_label">Email avvisi caricamento:</span><br/>
+                                <field name="pwork_email_avvisi"/>
+                                <div class="text-muted">Rapporto di caricamento, invio e chiusura (vuoto = nessuna mail)</div>
+                            </div>
+                            <div class="o_setting_right_pane">
+                                <span class="o_form_label">Email controllo HR:</span><br/>
+                                <field name="pwork_email_hr"/>
+                                <div class="text-muted">Autisti dipendenti con giornate di viaggio senza badge: il lunedì sulla settimana precedente e l'ultimo giorno lavorativo del mese, dalle 7 (vuoto = nessuna mail)</div>
+                            </div>
+                            <div class="o_setting_right_pane">
+                                <span class="o_form_label">Promemoria viaggi da chiudere ai ROP:</span><br/>
+                                <field name="pwork_promemoria_rop" widget="boolean_toggle"/>
+                                <div class="text-muted">Ogni mattina dalle 08:30, a ogni centro di costo (follower del team helpdesk) i viaggi degli ultimi 30 giorni non checked, in copia all'email controllo HR. Prima di accenderlo disattivare l'azione pianificata che fa la stessa cosa</div>
+                            </div>
+                            <div class="o_setting_right_pane">
+                                <span class="o_form_label">Email mittente promemoria:</span><br/>
+                                <field name="pwork_email_mittente"/>
+                            </div>
+                        </div>
+                    </div>
                 </app>
             </xpath>
         </field>

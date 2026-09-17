@@ -1,0 +1,44 @@
+<odoo>
+    <data noupdate="1">
+        <!-- Gira spesso: un giorno si carica appena il suo ultimo viaggio e' checked.
+             Carica solo se "Caricamento automatico ore" e' attivo nelle impostazioni Pwork;
+             chiusura del mese e invio delle righe automatiche seguono i rispettivi parametri. -->
+        <record id="ir_cron_pwork_caricamento_ore" model="ir.cron">
+            <field name="name">Pwork: caricamento ore e chiusura mese</field>
+            <field name="model_id" ref="model_pwork_caricamento"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_caricamento()</field>
+            <field name="interval_number">15</field>
+            <field name="interval_type">minutes</field>
+            <field name="numbercall">-1</field>
+            <field name="doall">False</field>
+            <field name="active" eval="True"/>
+        </record>
+
+        <!-- Il lunedi' controlla la settimana precedente, l'ultimo giorno lavorativo del mese il mese intero (dalle 7) -->
+        <record id="ir_cron_pwork_controllo_hr" model="ir.cron">
+            <field name="name">Pwork: controllo HR contratti e badge</field>
+            <field name="model_id" ref="model_pwork_caricamento"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_controllo_hr()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">hours</field>
+            <field name="numbercall">-1</field>
+            <field name="doall">False</field>
+            <field name="active" eval="True"/>
+        </record>
+
+        <!-- Promemoria ai ROP: gira ogni 15 minuti ma invia una volta al giorno, dalle 08:30 -->
+        <record id="ir_cron_pwork_promemoria_rop" model="ir.cron">
+            <field name="name">Pwork: promemoria viaggi da chiudere ai ROP</field>
+            <field name="model_id" ref="model_pwork_caricamento"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_promemoria_rop()</field>
+            <field name="interval_number">15</field>
+            <field name="interval_type">minutes</field>
+            <field name="numbercall">-1</field>
+            <field name="doall">False</field>
+            <field name="active" eval="True"/>
+        </record>
+    </data>
+</odoo>

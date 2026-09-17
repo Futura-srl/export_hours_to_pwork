@@ -1,4 +1,4 @@
-import logging, datetime
+import logging, datetime, pytz
 from odoo import api, fields, models, http, _, Command
 from odoo.exceptions import UserError, ValidationError
 from datetime import datetime as dt
@@ -177,6 +177,35 @@ class Trip(models.Model):
         elif self.drivers_payment == 'ore_macarena_inverso':
             return self.trip_start_from_survey, self.last_stop_planned_at
         return None, None
+
+    def _get_pwork_start(self):
+        """ Inizio del viaggio ai fini del caricamento ore: quello del metodo di pagamento, oppure il
+        pianificato se l'orario non c'e' ancora (es. sondaggio non compilato) o il viaggio non e' pagabile """
+        self.ensure_one()
+        start_time, _end_time = self._get_trip_interval()
+        return start_time or self.first_stop_planned_at
+
+    def _check_sovrapposizione_ore_validate(self, employee_id, start_datetime, end_datetime):
+        """ Blocca il checked se le ore del viaggio si sovrappongono a ore dello stesso dipendente gia'
+        validate o avviate verso Pwork, in un modo che non si puo' sistemare senza modificare quelle ore.
+        E' accettato solo il turno che inizia dentro quello gia' validato e finisce dopo: al caricamento
+        il suo inizio viene spostato alla fine del turno validato. """
+        self.ensure_one()
+        if not self.env['pwork.caricamento']._nuova_gestione_attiva():
+            return
+        validati = self.env['account.analytic.line'].sudo().search([
+            ('employee_id', '=', employee_id),
+            ('datetime_start', '<', end_datetime),
+            ('datetime_stop', '>', start_datetime),
+            '|', '|', ('validated', '=', True), ('processed', '=', True), ('pwork', '=', True),
+        ])
+        tz = pytz.timezone('Europe/Rome')
+        for validato in validati:
+            if start_datetime >= validato.datetime_start and end_datetime > validato.datetime_stop:
+                continue
+            inizio = pytz.utc.localize(validato.datetime_start).astimezone(tz).strftime('%d/%m/%Y %H:%M')
+            fine = pytz.utc.localize(validato.datetime_stop).astimezone(tz).strftime('%d/%m/%Y %H:%M')
+            raise ValidationError(_(f"Il viaggio {self.name} non può essere messo in checked: le ore di {validato.employee_id.name} si sovrappongono a ore già validate per Pwork (viaggio {validato.gtms_id.name}, dalle {inizio} alle {fine}). Correggere gli orari del viaggio."))
 
 
     # @api.depends('trip_vehicle_manager_ids')
@@ -407,8 +436,20 @@ class Trip(models.Model):
                 _logger.info(driver['learning_driver_id'])
 
 
+            # Gli esterni (is_esterno sul contatto) non hanno timesheet: nessuna ricerca del contratto
+            autista_esterno = self.env['res.partner'].sudo().browse(driver_id).is_esterno
+            allievo_esterno = bool(driver['learning_driver_id']) and self.env['res.partner'].sudo().browse(learning_driver_id).is_esterno
+            if autista_esterno:
+                record.message_post(body=f"L'autista {self.env['res.partner'].sudo().browse(driver_id).name} è esterno: nessun timesheet generato.", subtype_xmlid="mail.mt_note")
+                record.check = True
+                record.check_by = self.env.user.id
+            if allievo_esterno:
+                record.message_post(body=f"L'allievo {self.env['res.partner'].sudo().browse(learning_driver_id).name} è esterno: nessun timesheet generato.", subtype_xmlid="mail.mt_note")
+
             # Cerco il dipendente con contratto attivo al momento della partenza del viaggio
             employees = self.env['hr.employee'].sudo().search([('address_home_id', '=', driver_id), ('contract_id', '!=', False), '|', ('active', '=', False),('active', '=', True)])
+            if autista_esterno:
+                employees = self.env['hr.employee']
             if driver['learning_driver_id']:
                 employees_learning = self.env['hr.employee'].sudo().search([('address_home_id', '=', learning_driver_id), ('contract_id', '!=', False), '|', ('active', '=', False),('active', '=', True)])
                 _logger.info(employees_learning)
@@ -433,6 +474,7 @@ class Trip(models.Model):
                 if contracts:
                     _logger.info(contracts[0].employee_id.id)
                     employee_id = contracts[0].employee_id.id
+                    record._check_sovrapposizione_ore_validate(employee_id, start_datetime, end_datetime)
 
 
                     # Creo il Timesheet
@@ -460,11 +502,11 @@ class Trip(models.Model):
                     continue
 
             # Nessun dipendente dell'autista ha un contratto valido nelle date del viaggio
-            if not timesheet:
+            if not timesheet and not autista_esterno:
                 autista = self.env['res.partner'].sudo().browse(driver_id)
                 raise ValidationError(_(f"L'autista {autista.name} non ha un contratto valido dal {start_time.strftime('%d/%m/%Y')} al {end_time.strftime('%d/%m/%Y')}: il viaggio {trip} non può essere messo in checked. Contattare l'ufficio HR."))
 
-            if driver['learning_driver_id']:
+            if driver['learning_driver_id'] and not allievo_esterno:
                 timesheet_learning = False
                 for employee in employees_learning:
                     # In sudo come per l'autista: i ROP non vedono i contratti dei dipendenti e
@@ -478,6 +520,7 @@ class Trip(models.Model):
                         _logger.info(contracts)
                         _logger.info(contracts[0].employee_id.id)
                         employee_id = contracts[0].employee_id.id
+                        record._check_sovrapposizione_ore_validate(employee_id, start_datetime, end_datetime)
                         if learning_driver_id:
                             timesheet_learning = self.env['account.analytic.line'].sudo().create(
                             {
@@ -567,7 +610,8 @@ class Trip(models.Model):
             # Controllo quali autisti hanno le ore sul timesheet
             drivers_with_hours = work_times.mapped('employee_id.address_home_id')
             # Trovo gli autisti che non hanno le ore sul timesheet
-            missing_drivers = record.all_drivers_ids - drivers_with_hours
+            # gli esterni non hanno timesheet
+            missing_drivers = (record.all_drivers_ids - drivers_with_hours).filtered(lambda partner: not partner.is_esterno)
             _logger.info(f"Autisti con ore: {drivers_with_hours}, Autisti senza ore: {missing_drivers}")
             if missing_drivers:
                 # Se mancano dei timesheet li rigenero

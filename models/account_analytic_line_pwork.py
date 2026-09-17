@@ -1,5 +1,5 @@
 from odoo import api, fields, models, http, _, Command
-import logging, datetime, requests, json, pytz
+import logging, datetime, requests, json, pytz, threading
 import xml.etree.ElementTree as ET
 from odoo.exceptions import UserError, ValidationError
 
@@ -22,6 +22,10 @@ class AccountAnalyticLine(models.Model):
     unit_amount = fields.Float(string="Hours Spent", compute="_compute_unit_amount")
     causale_gtms_pwork = fields.Char(string="Causale gtms Pwork", compute="_compute_causale_gtms_pwork")
     payload = fields.Text(string='Payload', help="The XML payload sent to Pwork.")
+    # Righe create dal caricamento automatico: solo queste vengono inviate dal cron
+    invio_automatico = fields.Boolean(string="Invio automatico", readonly=True, copy=False,
+                                      default=lambda self: self.env.context.get('pwork_invio_automatico', False))
+    invio_ids = fields.One2many('account.analytic.line.pwork.invio', 'riga_pwork_id', string="Invii a Pwork", readonly=True)
 
 
     
@@ -56,7 +60,24 @@ class AccountAnalyticLine(models.Model):
             else:
                 line.validated_status = 'validated'
 
+    def _registra_invio(self, esito, risposta, payload=False):
+        """ Salva l'invio e la risposta di Pwork e li rende definitivi subito: se il giro si interrompe
+        dopo, le timbrature gia' arrivate a Pwork restano registrate e non vengono reinviate per errore """
+        self.ensure_one()
+        self.env['account.analytic.line.pwork.invio'].sudo().create({
+            'riga_pwork_id': self.id,
+            'esito': esito,
+            'risposta': risposta if isinstance(risposta, str) else str(risposta),
+            'payload': payload,
+        })
+        # nei test il commit non e' permesso: il database torna indietro da solo
+        if not getattr(threading.current_thread(), 'testing', False):
+            self.env.cr.commit()
+
     def upload_to_pwork(self):
+        # Le copie del database (locale, staging) sono neutralizzate: da li' non si invia nulla a Pwork
+        if self.env['ir.config_parameter'].sudo().get_param('database.is_neutralized'):
+            raise UserError(_("Database neutralizzato (copia di test): l'invio a Pwork è bloccato."))
         tz = pytz.timezone('Europe/Rome')  # E.g., 'Europe/Rome'
         for record in self:
             badges = []
@@ -90,6 +111,7 @@ class AccountAnalyticLine(models.Model):
                 _logger.info("Badge")
             if not badges or badges == [] or badge['name'] == False:
                 record.error_txt = "Badge mancante"
+                record._registra_invio(False, "Badge mancante")
                 continue
             _logger.info(f"Stampo badge {badge['name']}")
             _logger.info(f"Stampo data_e {data_e}")
@@ -100,7 +122,15 @@ class AccountAnalyticLine(models.Model):
             _logger.info(f"Stampo ore_u {ore_u}")
             _logger.info(f"Stampo minuti_u {minuti_u}")
             _logger.info(f"Stampo secondi_u {secondi_u}")
-            response, element, error, payload = self.env['account.analytic.line.pwork'].send_timesheet(badge['name'],data_e,ore_e,minuti_e,secondi_e,causale_pwork,data_u,ore_u,minuti_u,secondi_u)
+            try:
+                response, element, error, payload = self.env['account.analytic.line.pwork'].send_timesheet(badge['name'],data_e,ore_e,minuti_e,secondi_e,causale_pwork,data_u,ore_u,minuti_u,secondi_u)
+            except (requests.exceptions.RequestException, ET.ParseError, ValueError, KeyError, AttributeError) as e:
+                # La richiesta potrebbe essere arrivata a Pwork anche se la risposta non e' leggibile
+                _logger.exception("Errore durante l'invio a Pwork della riga %s", record.id)
+                record.error_txt = f"Errore durante l'invio a Pwork, esito sconosciuto: verificare su Pwork prima di reinviare. Dettaglio: {e}"
+                record._registra_invio(False, record.error_txt)
+                # Pwork non risponde o risponde male: inutile continuare con le altre righe
+                break
             record.pwork = response
             record.error_txt = element
             record.payload = payload
@@ -108,6 +138,7 @@ class AccountAnalyticLine(models.Model):
                 _logger.info(timesheet.id)
                 timesheet_record = self.env['account.analytic.line'].browse(timesheet.id)
                 timesheet_record.write({'pwork': response, 'error_txt': element, 'error': error})
+            record._registra_invio(response, element, payload)
 
 
     def send_timesheet(self,badge,data_e,ore_e,minuti_e,secondi_e,causale_pwork,data_u,ore_u,minuti_u,secondi_u):
@@ -172,7 +203,7 @@ class AccountAnalyticLine(models.Model):
         _logger.info("Invio della richiesta HTTP POST")
     
         # Invio della richiesta HTTP POST
-        response = requests.post(url, headers=headers, data=payload)
+        response = requests.post(url, headers=headers, data=payload, timeout=120)
     
     
         _logger.info("Stampa dello stato della risposta HTTP e del contenuto della risposta")
@@ -195,5 +226,14 @@ class AccountAnalyticLine(models.Model):
             return False, data, True, payload
         else:
             return True, data, False, payload
-        
 
+
+class AccountAnalyticLinePworkInvio(models.Model):
+    _name = "account.analytic.line.pwork.invio"
+    _description = "Invio di una riga timesheet a Pwork"
+    _order = "create_date desc, id desc"
+
+    riga_pwork_id = fields.Many2one('account.analytic.line.pwork', string="Riga Pwork", required=True, ondelete='cascade', index=True)
+    esito = fields.Boolean(string="Inviato", readonly=True)
+    risposta = fields.Text(string="Risposta", readonly=True)
+    payload = fields.Text(string="Payload", readonly=True)

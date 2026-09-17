@@ -234,6 +234,8 @@ class TestCorrezioniCaricamentoOre(TransactionCase):
     # ------------------------------------------------------------------
     def test_40_badge_mancante_solo_sulla_riga_senza_badge(self):
         self.env['ir.config_parameter'].sudo().set_param('switch_hr1', 'True')
+        # la copia locale e' neutralizzata: nel test l'invio e' comunque finto
+        self.env['ir.config_parameter'].sudo().set_param('database.is_neutralized', False)
         self.env['hr.badgespwork'].create({
             'name': 'TEST-BADGE-CARICAMENTO-ORE',
             'active': True,

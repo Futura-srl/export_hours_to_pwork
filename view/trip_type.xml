@@ -9,6 +9,7 @@
                 <field name="task_id"/>
                 <field name="causale_pwork"/>
                 <field name="default_drivers_payment"/>
+                <field name="carica_ore_pwork"/>
             </xpath>
         </field>
     </record>

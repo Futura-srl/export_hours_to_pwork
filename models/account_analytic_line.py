@@ -198,6 +198,15 @@ class AccountAnalyticLine(models.Model):
     # raggruppo tutti i timesheet per dipendente e se vi sono piu turni che finiscono e iniziano nello stesso momento creo un timesheet unico
     
     def upload_to_pwork_table_2(self):
+        # Le ore di un mese chiuso per Pwork non si caricano più: si possono validare (così il viaggio non
+        # si riapre) ma non diventano righe Pwork. Vale per Processing to Pwork, la V2 e il caricamento automatico.
+        caricamento = self.env['pwork.caricamento']
+        primo_giorno_aperto = caricamento._primo_giorno_aperto()
+        if primo_giorno_aperto and caricamento._nuova_gestione_attiva():
+            chiusi = self.filtered(lambda line: line.gtms_id and line.datetime_start
+                                   and caricamento._giorno_roma(line.datetime_start) < primo_giorno_aperto)
+            if chiusi:
+                raise UserError(_(f"Non è possibile elaborare per Pwork timesheet di un mese già chiuso (ID: {', '.join(str(i) for i in chiusi.ids)})"))
         shifts_data = []
         shifts_data_unique = []
         timesheet_list = []
@@ -286,13 +295,59 @@ class AccountAnalyticLine(models.Model):
                 })
         
     
-    # Questa funzione serve per gestire i turni orario che sono sovrapposti 
-    # I turni vanno ciclati per autista e messi in ordine di inizo turno
-    # Il primo record va saltato
-    # Si controlla sempre se il turno di inizio del record i+1 è antecedente alla fine del turno del record i, nel caso il turno inizio del record i+1 assume il valore del turno di fine del record i.
-    # Se i >= len(turni) -> salta il record
-    
+    # Gestione dei turni sovrapposti sui timesheet selezionati (solo quelli in bozza).
+    # Ogni turno in bozza viene confrontato con tutti i turni dello stesso dipendente, di qualsiasi stato,
+    # dall'inizio del giorno precedente: alla fine non deve restare nessuna sovrapposizione.
     def overlapping_time_management(self):
+        if not self.env['pwork.caricamento']._nuova_gestione_attiva():
+            return self._overlapping_time_management_precedente()
+        errori = self._gestisci_sovrapposizioni()
+        if errori:
+            raise ValidationError(_("Turni sovrapposti da sistemare a mano:\n" + "\n".join(testo for _dipendente, testo in errori)))
+
+    def _gestisci_sovrapposizioni(self):
+        """ Sistema le sovrapposizioni dei timesheet in bozza di self e restituisce gli errori
+        come elenco di (dipendente, testo).
+
+        - il turno in bozza che inizia dentro il turno precedente e finisce dopo: il suo inizio viene
+          spostato alla fine del precedente;
+        - il turno contenuto in un altro: errore;
+        - il turno in bozza che inizia prima di un turno non modificabile (validato o fuori da self) e
+          finisce dentro: errore, perche' andrebbe spostato l'inizio del turno non modificabile.
+        I turni che non sono in self non vengono mai modificati. """
+        caricamento = self.env['pwork.caricamento']
+        errori = []
+        bozze = self.filtered(lambda line: not line.validated and line.datetime_start and line.datetime_stop)
+        for dipendente in bozze.employee_id:
+            turni_modificabili = bozze.filtered(lambda line: line.employee_id == dipendente)
+            giorno_precedente = caricamento._giorno_roma(min(turni_modificabili.mapped('datetime_start'))) - timedelta(days=1)
+            turni = self.sudo().search([
+                ('employee_id', '=', dipendente.id),
+                ('datetime_start', '!=', False),
+                ('datetime_stop', '!=', False),
+                ('datetime_stop', '>', caricamento._inizio_giorno_utc(giorno_precedente)),
+                ('datetime_start', '<', max(turni_modificabili.mapped('datetime_stop'))),
+            ], order="datetime_start asc, id asc")
+            precedente = False
+            for turno in turni:
+                if precedente and turno.datetime_start < precedente.datetime_stop:
+                    coinvolti = turno in turni_modificabili or precedente in turni_modificabili
+                    if turno.datetime_stop <= precedente.datetime_stop:
+                        if coinvolti:
+                            errori.append((dipendente, f"{dipendente.name}: il turno {caricamento._descrivi_turno(turno)} è contenuto nel turno {caricamento._descrivi_turno(precedente)}"))
+                        continue
+                    if turno in turni_modificabili:
+                        _logger.info(f"Sposto l'inizio del turno {turno.id} da {turno.datetime_start} a {precedente.datetime_stop}")
+                        turno.write({'datetime_start': precedente.datetime_stop})
+                    elif coinvolti:
+                        stato = "già validato" if turno.validated else "non selezionato"
+                        errori.append((dipendente, f"{dipendente.name}: il turno {caricamento._descrivi_turno(precedente)} finisce dentro il turno {stato} {caricamento._descrivi_turno(turno)}"))
+                if not precedente or turno.datetime_stop > precedente.datetime_stop:
+                    precedente = turno
+        return errori
+
+    # Metodo precedente, usato quando nelle impostazioni Pwork e' attivo "Usa il metodo precedente"
+    def _overlapping_time_management_precedente(self):
         _logger.info(self)
         da_stampare = ""
         employees = []

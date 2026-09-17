@@ -1,0 +1,36 @@
+<odoo>
+    <record id="pwork_carica_ore_wizard_form" model="ir.ui.view">
+        <field name="name">pwork.carica.ore.wizard.form</field>
+        <field name="model">pwork.carica.ore.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Carica ore su Pwork">
+                <group>
+                    <field name="data_a"/>
+                </group>
+                <p class="text-muted">
+                    Carica in ordine i giorni i cui viaggi (e quelli del giorno prima) sono tutti checked:
+                    gestione dei turni sovrapposti, validazione e creazione delle righe Pwork.
+                    L'invio a Pwork parte subito dopo in background.
+                </p>
+                <field name="risultato" invisible="not risultato" nolabel="1"/>
+                <footer>
+                    <button name="action_carica" type="object" string="Carica" class="btn-primary"/>
+                    <button string="Chiudi" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_pwork_carica_ore_wizard" model="ir.actions.act_window">
+        <field name="name">Carica ore su Pwork</field>
+        <field name="res_model">pwork.carica.ore.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_pwork_carica_ore_wizard"
+              parent="hr_timesheet.menu_hr_time_tracking"
+              action="action_pwork_carica_ore_wizard"
+              name="Carica ore su Pwork"
+              groups="Diritti.developer_group,fleet.fleet_group_manager"/>
+</odoo>

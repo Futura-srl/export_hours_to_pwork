@@ -46,6 +46,26 @@
                                 <field name="analytic_ids" readonly="1"/>
                             </tree>
                         </page>
+                        <page string="Invii a Pwork">
+                            <field name="invio_automatico"/>
+                            <field name="invio_ids" readonly="1">
+                                <tree>
+                                    <field name="create_date" string="Data"/>
+                                    <field name="create_uid" string="Utente"/>
+                                    <field name="esito"/>
+                                    <field name="risposta"/>
+                                </tree>
+                                <form>
+                                    <group>
+                                        <field name="create_date" string="Data"/>
+                                        <field name="create_uid" string="Utente"/>
+                                        <field name="esito"/>
+                                        <field name="risposta"/>
+                                        <field name="payload"/>
+                                    </group>
+                                </form>
+                            </field>
+                        </page>
                     </notebook>
                 </sheet>
             </form>
