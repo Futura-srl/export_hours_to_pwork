@@ -13,11 +13,15 @@ class VehicleManager(models.Model):
 
 
     # Nella funzione create controllo che il viaggio associato (trip_id) non sia con lo stato "checked"
-    def create(self, vals):
-        trip = self.env['gtms.trip'].browse(vals.get('trip_id'))
-        if trip.state == 'checked':
-            raise UserError(_("The trip is already checked."))
-        return super(VehicleManager, self).create(vals)
+    # L'ORM passa sempre una lista di dizionari (anche quando le righe nascono insieme al viaggio),
+    # quindi si cicla: prima si leggeva vals.get() su una lista e saltava tutto.
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            trip = self.env['gtms.trip'].browse(vals.get('trip_id'))
+            if trip.state == 'checked':
+                raise UserError(_("The trip is already checked."))
+        return super(VehicleManager, self).create(vals_list)
 
 
     # Anche la funzione write deve controllare se il record e' associato ad un viaggio con stato checked. Nel caso deve mostrare l';errore. Il tutto deve esere con log

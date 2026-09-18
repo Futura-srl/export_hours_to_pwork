@@ -11,6 +11,18 @@ now = datetime.datetime.now()
 class Trip(models.Model):
     _inherit = "gtms.trip"
 
+    # Nella versione 19 di gtms, Stesi ha tolto from_state_id / to_state_id (la provincia),
+    # tenendo solo citta', CAP e nazione. Le nostre viste le mostrano ancora, quindi i due
+    # campi related vengono ridefiniti qui, identici a come erano nella 17.
+    from_state_id = fields.Many2one(
+        related='from_address_partner_id.state_id', readonly=True, string="From State")
+    to_state_id = fields.Many2one(
+        related='to_address_partner_id.state_id', readonly=True, string="To State")
+    from_street = fields.Char(
+        related='from_address_partner_id.street', readonly=True, string="From Street")
+    to_street = fields.Char(
+        related='to_address_partner_id.street', readonly=True, string="To Street")
+
     def _states_list(self):
         states = self.env['gtms.trip.states'].sudo().search([])
         return states.mapped(lambda s: (s.name, s.description))
@@ -120,7 +132,8 @@ class Trip(models.Model):
             other_trips = self.env['gtms.trip'].search([
                 ('id', '!=', record.id),
                 ('state', '=', 'checked'),
-                ('all_drivers_ids', 'in', record.all_drivers_ids.ids),
+                '|', ('trip_vehicle_manager_ids.driver_id', 'in', record.all_drivers_ids.ids),
+                ('trip_vehicle_manager_ids.learning_driver_id', 'in', record.all_drivers_ids.ids),
                 '|',
                 '&', ('first_stop_planned_at', '<=', end_time), ('last_stop_planned_at', '>=', start_time),
                 '&', ('trip_start_from_survey', '<=', end_time), ('trip_end_from_survey', '>=', start_time),
@@ -406,9 +419,9 @@ class Trip(models.Model):
 
 
             # Cerco il dipendente con contratto attivo al momento della partenza del viaggio
-            employees = self.env['hr.employee'].sudo().search([('address_home_id', '=', driver_id), ('contract_id', '!=', False), '|', ('active', '=', False),('active', '=', True)])
+            employees = self.env['hr.employee'].sudo().search([('address_home_id', '=', driver_id), ('contract_date_start', '!=', False), '|', ('active', '=', False),('active', '=', True)])
             if driver['learning_driver_id']:
-                employees_learning = self.env['hr.employee'].sudo().search([('address_home_id', '=', learning_driver_id), ('contract_id', '!=', False), '|', ('active', '=', False),('active', '=', True)])
+                employees_learning = self.env['hr.employee'].sudo().search([('address_home_id', '=', learning_driver_id), ('contract_date_start', '!=', False), '|', ('active', '=', False),('active', '=', True)])
                 _logger.info(employees_learning)
             _logger.info(employees)
             # Utilizzo indice per essere certo di aver controllato tutti i dipendenti associati al res.partner e nel caso non ci fossero contratti attivi eseguo l'errore
@@ -420,10 +433,10 @@ class Trip(models.Model):
                     continue
                 indice = 1 + indice
                 _logger.info(f"Indice = {indice}, len = {len(employees)}")
-                contracts = self.env['hr.contract'].sudo().search([
+                contracts = self.env['hr.version'].sudo().search([
                     ('employee_id', '=', employee.id),
-                    ('date_start', '<=', start_time),
-                    '|', ('date_end', '>=', end_time), ('date_end', '=', False),
+                    ('contract_date_start', '<=', start_time),
+                    '|', ('contract_date_end', '>=', end_time), ('contract_date_end', '=', False),
                 ])
                 _logger.info("XXXXXXXXXXXXX")
                 _logger.info(contracts)
@@ -461,10 +474,10 @@ class Trip(models.Model):
 
             if driver['learning_driver_id']:
                 for employee in employees_learning:
-                    contracts = self.env['hr.contract'].search([
+                    contracts = self.env['hr.version'].search([
                         ('employee_id', '=', employee.id),
-                        ('date_start', '<=', start_time),
-                        '|', ('date_end', '>=', end_time), ('date_end', '=', False)
+                        ('contract_date_start', '<=', start_time),
+                        '|', ('contract_date_end', '>=', end_time), ('contract_date_end', '=', False)
                     ])
                     if contracts:
                         _logger.info(contracts)
@@ -509,10 +522,10 @@ class Trip(models.Model):
         if not employees:
             raise ValidationError(_(f"L'autista {driver.name} non ha un dipendente associato. Contattare l'assistenza fornendo i dati appena forniti."))
         for employee in employees:
-            contracts = self.env['hr.contract'].search([
+            contracts = self.env['hr.version'].search([
                 ('employee_id', '=', employee.id),
-                ('date_start', '<=', start_time),
-                '|', ('date_end', '>=', end_time), ('date_end', '=', False),
+                ('contract_date_start', '<=', start_time),
+                '|', ('contract_date_end', '>=', end_time), ('contract_date_end', '=', False),
             ])
             if contracts:
                 return contracts[0].employee_id.id

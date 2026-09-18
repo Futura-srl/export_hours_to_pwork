@@ -81,7 +81,7 @@ class AccountAnalyticLine(models.Model):
             #######
             ####### PARTE HR1 PER RECUPERO BADGE CORRETTO
             # Cerco il contratto attivo del dipendente nella data
-                contract = self.env['hr.contract'].search([('employee_id', '=', record.employee_id.id), ('date_start', '<=', record.datetime_start.date()), '|', ('date_end', '>=', record.datetime_start.date()), ('date_end', '=', False)], limit=1)
+                contract = self.env['hr.version'].search([('employee_id', '=', record.employee_id.id), ('contract_date_start', '<=', record.datetime_start.date()), '|', ('contract_date_end', '>=', record.datetime_start.date()), ('contract_date_end', '=', False)], limit=1)
                 if contract:
                     badges = self.env['hr.badgespwork'].search([('contract_ids', '=', contract.id),('active', '=', True), ('valid_from', '<=', record.datetime_start.date()), '|', ('valid_to', '>=', record.datetime_start.date()), ('valid_to', '=', False)], limit=1)
             ######

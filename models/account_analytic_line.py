@@ -287,14 +287,18 @@ class AccountAnalyticLine(models.Model):
         _logger.info(self)
         da_stampare = ""
         employees = []
-        all_timesheet = self.env['account.analytic.line'].search([('id', '!=', 0),('validated_status', '=', 'draft')])
+        # validated_status e' un campo calcolato non memorizzato (arriva da timesheet_grid):
+        # non si puo' filtrare in SQL, quindi qui non compare.
+        # Si guardano solo gli ultimi 30 giorni: i turni piu' vecchi sono gia' stati sistemati.
+        limite = fields.Datetime.now() - timedelta(days=30)
+        all_timesheet = self.env['account.analytic.line'].search([('datetime_start', '>=', limite)])
         _logger.info(all_timesheet)
         for timesheet in all_timesheet:
             employees.append(timesheet.employee_id)
         employees = list(set(employees))
         # Ciclo tutti i dipendenti e trovo i relativi timesheet messi in ordine di inizio turno (datetime_start)
         for employee in employees:
-            employee_timesheets = self.env['account.analytic.line'].search([('employee_id', '=', employee.id)], order="datetime_start asc")
+            employee_timesheets = self.env['account.analytic.line'].search([('employee_id', '=', employee.id), ('datetime_start', '>=', limite)], order="datetime_start asc")
             i = 0
             _logger.info(len(employee_timesheets)-1)
             for employee_timesheet in employee_timesheets:

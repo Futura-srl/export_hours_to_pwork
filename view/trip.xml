@@ -36,13 +36,13 @@
                 <field name="total_hour_payment" widget="float_time" readonly="True" decoration-success="total_hour_payment &gt; 0" decoration-warning="total_hour_payment &gt; 13.59" decoration-danger="total_hour_payment &lt; 0" decoration-bf="1" style="font-size: large"/>
             </xpath>
             <!-- <xpath expr="//field[@name='source_document']" position="replace">
-                <field name="source_document" attrs="{'readonly': [('is_readonly', '=', True)]}"/>
+                <field name="source_document" readonly="is_readonly"/>
             </xpath> -->
             <xpath expr="//field[@name='is_trip']" position="replace">
                 <field name="is_trip" readonly="['|',('is_readonly', '=', True),('state', 'in', ['done', 'cancel', 'checked'])]"/>
             </xpath>
             <!-- <xpath expr="//field[@name='external_identifier']" position="replace">
-                <field name="external_identifier" attrs="{'readonly': [('is_readonly', '=', True)]}"/>
+                <field name="external_identifier" readonly="is_readonly"/>
             </xpath> -->
             <xpath expr="//field[@name='is_transport']" position="replace">
                 <field name="is_transport" readonly="[('is_readonly', '=', True),('state', 'in', ['done', 'cancel', 'checked'])]"/>
@@ -60,13 +60,13 @@
                 <field name="distance_expected" readonly="[('is_readonly', '=', True)]"/>
             </xpath>
             <!-- <xpath expr="//field[@name='ort']" position="replace">
-                <field name="ort" attrs="{'readonly': [('is_readonly', '=', [('state', 'in' ['done','cancel','checked'])])]}"/>
+                <field name="ort" readonly="is_readonly"/>
             </xpath> -->
             <!-- <xpath expr="//field[@name='return_trip_id']" position="replace">
-                <field name="return_trip_id" attrs="{'invisible': [('ort', '==', 'rt')], 'readonly': [('is_readonly', '=', [('state', 'in' ['done','cancel','checked'])])]}"/>
+                <field name="return_trip_id" invisible="ort == 'rt'" readonly="is_readonly"/>
             </xpath>
             <xpath expr="//field[@name='outward_trip_id']" position="replace">
-                <field name="outward_trip_id" attrs="{'invisible': [('ort', '==', 'rt')], 'readonly': [('is_readonly', '=', [('state', 'in' ['done','cancel','checked'])])]}"/>
+                <field name="outward_trip_id" invisible="ort == 'rt'" readonly="is_readonly"/>
             </xpath> -->
         </field>
     </record>
@@ -120,7 +120,7 @@
         <field name="model_id" ref="model_gtms_trip"/>
         <field name="binding_model_id" ref="model_gtms_trip"/>
         <field name="binding_view_types">form,list</field>
-        <field name="groups_id" eval="[(4, ref('Diritti.rop_group'))]"/>
+        <field name="group_ids" eval="[(4, ref('Diritti.rop_group'))]"/>
         <field name="state">code</field>
         <field name="code">
             records.regenerate_hours_to_timesheet()
