@@ -75,7 +75,8 @@ class PworkCaricamento(models.AbstractModel):
         inizio = pytz.utc.localize(turno.datetime_start).astimezone(TZ).strftime('%d/%m/%Y %H:%M')
         fine = pytz.utc.localize(turno.datetime_stop).astimezone(TZ).strftime('%d/%m/%Y %H:%M')
         viaggio = turno.gtms_id.name if 'gtms_id' in turno._fields else False
-        return f"{viaggio or turno.name or ''} ({inizio} - {fine})".strip()
+        riferimento = f", timesheet {turno.id}" if 'gtms_id' in turno._fields else ""
+        return f"{viaggio or turno.name or ''} ({inizio} - {fine}{riferimento})".strip()
 
     @api.model
     def _parametro(self, nome, default=False):
@@ -314,9 +315,18 @@ class PworkCaricamento(models.AbstractModel):
 
     @api.model
     def _testo_rapporto(self, caricamento, chiusure, invio):
-        righe = []
+        movimenti, problemi = self._righe_rapporto(caricamento, chiusure, invio)
+        return "\n".join(movimenti + problemi)
+
+    @api.model
+    def _righe_rapporto(self, caricamento, chiusure, invio):
+        """ Divide il rapporto tra quello che e' successo (movimenti) e quello che resta bloccato (problemi):
+        i problemi che non cambiano non fanno partire una nuova mail """
+        movimenti = []
+        problemi = []
+        righe = problemi
         if not self._primo_giorno_aperto():
-            righe.append("Ultimo mese chiuso non impostato nelle impostazioni Pwork: nessun giorno caricato.")
+            problemi.append("Ultimo mese chiuso non impostato nelle impostazioni Pwork: nessun giorno caricato.")
         # i mesi chiusi alla scadenza nello stesso giro hanno il loro riepilogo: il "fermo" non vale piu'
         mesi_scaduti = {(chiusura['mese'].year, chiusura['mese'].month) for chiusura in chiusure if chiusura['scadenza']}
         for esito in caricamento:
@@ -324,41 +334,46 @@ class PworkCaricamento(models.AbstractModel):
             if (esito['giorno'].year, esito['giorno'].month) in mesi_scaduti:
                 esito = dict(esito, viaggi_aperti=[], errori=[])
             if esito['viaggi_aperti']:
-                righe.append(f"Caricamento fermo al {giorno}: viaggi non ancora checked:")
-                righe += [f"  - {viaggio.name} ({self._giorno_roma(viaggio._get_pwork_start()).strftime('%d/%m/%Y')}, {viaggio.current_driver_id.name or 'senza autista'})"
-                          for viaggio in esito['viaggi_aperti'][:50]]
+                problemi.append(f"Caricamento fermo al {giorno}: viaggi non ancora checked:")
+                problemi += [f"  - {viaggio.name} ({self._giorno_roma(viaggio._get_pwork_start()).strftime('%d/%m/%Y')}, {viaggio.current_driver_id.name or 'senza autista'})"
+                             for viaggio in esito['viaggi_aperti'][:50]]
             if esito['errori']:
-                righe.append(f"{giorno}: turni sovrapposti da sistemare a mano:")
-                righe += [f"  - {errore}" for errore in esito['errori']]
+                problemi.append(f"{giorno}: turni sovrapposti da sistemare a mano:")
+                problemi += [f"  - {errore}" for errore in esito['errori']]
             if esito['validati'] or esito['righe']:
-                righe.append(f"{giorno}: {esito['validati']} timesheet validati, {esito['righe']} righe Pwork create")
+                movimenti.append(f"{giorno}: {esito['validati']} timesheet validati, {esito['righe']} righe Pwork create")
         for chiusura in chiusure:
             mese = chiusura['mese'].strftime('%m/%Y')
             if chiusura['scadenza']:
                 validati = sum(esito['validati'] for esito in chiusura['caricamento'])
                 create = sum(esito['righe'] for esito in chiusura['caricamento'])
-                righe.append(f"Mese {mese} chiuso alla scadenza: caricati {validati} timesheet ({create} righe Pwork); restano fuori {len(chiusura['viaggi_aperti'])} viaggi non checked e {len(chiusura['bozze'])} timesheet in bozza")
-                righe += [f"  - viaggio {viaggio.name}" for viaggio in chiusura['viaggi_aperti'][:50]]
+                movimenti.append(f"Mese {mese} chiuso alla scadenza: caricati {validati} timesheet ({create} righe Pwork); restano fuori {len(chiusura['viaggi_aperti'])} viaggi non checked e {len(chiusura['bozze'])} timesheet in bozza")
+                movimenti += [f"  - viaggio {viaggio.name}" for viaggio in chiusura['viaggi_aperti'][:50]]
                 for esito in chiusura['caricamento']:
-                    righe += [f"  - {esito['giorno'].strftime('%d/%m/%Y')}: {errore}" for errore in esito['errori']]
+                    movimenti += [f"  - {esito['giorno'].strftime('%d/%m/%Y')}: {errore}" for errore in esito['errori']]
             else:
-                righe.append(f"Mese {mese} chiuso: tutti i viaggi checked e tutti i timesheet validati")
-        if invio and (invio['inviate'] or invio['errori']):
-            righe.append(f"Invio a Pwork: {invio['inviate']} righe inviate su {invio['da_inviare']}")
-            righe += [f"  - {errore}" for errore in invio['errori']]
-        return "\n".join(righe)
+                movimenti.append(f"Mese {mese} chiuso: tutti i viaggi checked e tutti i timesheet validati")
+        if invio and invio['inviate']:
+            movimenti.append(f"Invio a Pwork: {invio['inviate']} righe inviate su {invio['da_inviare']}")
+        if invio and invio['errori']:
+            problemi.append("Invio a Pwork non riuscito:")
+            problemi += [f"  - {errore}" for errore in invio['errori']]
+        return movimenti, problemi
 
     @api.model
     def _invia_rapporto(self, caricamento, chiusure, invio):
-        testo = self._testo_rapporto(caricamento, chiusure, invio)
-        if not testo:
+        movimenti, problemi = self._righe_rapporto(caricamento, chiusure, invio)
+        if not movimenti and not problemi:
             return
+        testo = "\n".join(movimenti + problemi)
         _logger.info("Rapporto caricamento Pwork:\n%s", testo)
-        # lo stesso rapporto (es. giorno fermo per lo stesso viaggio) si manda una volta sola
-        impronta = hashlib.sha1(testo.encode()).hexdigest()
-        if self._parametro('ultimo_rapporto') == impronta:
-            return
+        # i problemi che restano uguali (es. lo stesso giorno fermo) non fanno partire un'altra mail:
+        # la mail parte quando e' successo qualcosa di nuovo o quando i problemi cambiano
+        impronta = hashlib.sha1("\n".join(problemi).encode()).hexdigest()
+        problemi_nuovi = self._parametro('ultimo_rapporto') != impronta
         self.env['ir.config_parameter'].sudo().set_param(PARAMETRO % 'ultimo_rapporto', impronta)
+        if not movimenti and not problemi_nuovi:
+            return
         self._invia_mail('email_avvisi', "Pwork: caricamento ore e chiusura mese", testo)
 
     @api.model

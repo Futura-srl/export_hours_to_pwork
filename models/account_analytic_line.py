@@ -333,7 +333,9 @@ class AccountAnalyticLine(models.Model):
                 if precedente and turno.datetime_start < precedente.datetime_stop:
                     coinvolti = turno in turni_modificabili or precedente in turni_modificabili
                     if turno.datetime_stop <= precedente.datetime_stop:
-                        if coinvolti:
+                        if coinvolti and turno.gtms_id == precedente.gtms_id and turno.datetime_start == precedente.datetime_start and turno.datetime_stop == precedente.datetime_stop:
+                            errori.append((dipendente, f"{dipendente.name}: due timesheet doppi per il viaggio {turno.gtms_id.name} ({caricamento._descrivi_turno(turno)}): cancellarne uno, id {precedente.id} e {turno.id}"))
+                        elif coinvolti:
                             errori.append((dipendente, f"{dipendente.name}: il turno {caricamento._descrivi_turno(turno)} è contenuto nel turno {caricamento._descrivi_turno(precedente)}"))
                         continue
                     if turno in turni_modificabili:

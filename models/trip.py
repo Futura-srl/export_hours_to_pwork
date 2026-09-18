@@ -185,6 +185,13 @@ class Trip(models.Model):
         start_time, _end_time = self._get_trip_interval()
         return start_time or self.first_stop_planned_at
 
+    def _timesheet_gia_presente(self, employee_id):
+        """ Il viaggio ha gia' le ore di questo dipendente: evita i doppioni se il checked viene eseguito due
+        volte o si incrocia con "Rigenera Timesheet mancanti" """
+        self.ensure_one()
+        return bool(self.env['account.analytic.line'].sudo().search_count([
+            ('gtms_id', '=', self.id), ('employee_id', '=', employee_id)]))
+
     def _check_sovrapposizione_ore_validate(self, employee_id, start_datetime, end_datetime):
         """ Blocca il checked se le ore del viaggio si sovrappongono a ore dello stesso dipendente gia'
         validate o avviate verso Pwork, in un modo che non si puo' sistemare senza modificare quelle ore.
@@ -474,6 +481,12 @@ class Trip(models.Model):
                 if contracts:
                     _logger.info(contracts[0].employee_id.id)
                     employee_id = contracts[0].employee_id.id
+                    if record._timesheet_gia_presente(employee_id):
+                        # le ore ci sono gia': niente doppione, ma il viaggio resta controllato
+                        timesheet = True
+                        record.check = True
+                        record.check_by = self.env.user.id
+                        continue
                     record._check_sovrapposizione_ore_validate(employee_id, start_datetime, end_datetime)
 
 
@@ -520,6 +533,9 @@ class Trip(models.Model):
                         _logger.info(contracts)
                         _logger.info(contracts[0].employee_id.id)
                         employee_id = contracts[0].employee_id.id
+                        if record._timesheet_gia_presente(employee_id):
+                            timesheet_learning = True
+                            continue
                         record._check_sovrapposizione_ore_validate(employee_id, start_datetime, end_datetime)
                         if learning_driver_id:
                             timesheet_learning = self.env['account.analytic.line'].sudo().create(
@@ -620,6 +636,9 @@ class Trip(models.Model):
                     employee = record.get_active_employee_driver(driver, metodo_pagamento, ora_inizio, ora_fine)
                     employee_id = self.env['hr.employee'].sudo().browse(employee)
                     _logger.info(f"Ho trovato il dipendente con id {employee} per l'autista {driver.name}")
+                    if record._timesheet_gia_presente(employee):
+                        _logger.info("Il viaggio ha gia' le ore di questo dipendente: non ne creo un altro")
+                        continue
                     timesheet = self.env['account.analytic.line'].create({
                         'date': ora_inizio.date(),
                         'project_id': record.trip_type_id.task_id.project_id.id,

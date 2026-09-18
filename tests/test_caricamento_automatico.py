@@ -469,18 +469,22 @@ class TestCaricamentoAutomatico(TransactionCase):
 
     def test_61_mail_solo_con_indirizzo_e_una_volta(self):
         self.parametri.set_param('database.is_neutralized', False)
-        caricamento = [{'giorno': date(2030, 8, 3), 'viaggi_aperti': self.env['gtms.trip'], 'errori': ['prova'], 'validati': 0, 'righe': 0}]
+        bloccato = [{'giorno': date(2030, 8, 3), 'viaggi_aperti': self.env['gtms.trip'], 'errori': ['prova'], 'validati': 0, 'righe': 0}]
         Mail = self.env['mail.mail']
         prima = Mail.search_count([])
 
-        self.caricamento._invia_rapporto(caricamento, [], None)
+        self.caricamento._invia_rapporto(bloccato, [], None)
         self.assertEqual(Mail.search_count([]), prima, "senza indirizzo nessuna mail")
 
         self.parametri.set_param('export_hours_to_pwork.ultimo_rapporto', False)
         self.parametri.set_param('export_hours_to_pwork.email_avvisi', 'test@example.com')
-        self.caricamento._invia_rapporto(caricamento, [], None)
-        self.caricamento._invia_rapporto(caricamento, [], None)
-        self.assertEqual(Mail.search_count([]), prima + 1, "lo stesso rapporto si manda una volta sola")
+        self.caricamento._invia_rapporto(bloccato, [], None)
+        self.caricamento._invia_rapporto(bloccato, [], None)
+        self.assertEqual(Mail.search_count([]), prima + 1, "lo stesso blocco non si ripete")
+
+        # un invio riuscito e' una novita': la mail parte anche se il blocco e' lo stesso
+        self.caricamento._invia_rapporto(bloccato, [], {'da_inviare': 2, 'inviate': 2, 'errori': []})
+        self.assertEqual(Mail.search_count([]), prima + 2)
 
     def _mail_hr(self, giorno, ora=8):
         self.parametri.set_param('export_hours_to_pwork.email_hr', 'test@example.com')
@@ -540,6 +544,31 @@ class TestCaricamentoAutomatico(TransactionCase):
         luglio.write({'validated': True})
         luglio.upload_to_pwork_table_2()
         self.assertTrue(self._righe_pwork(luglio))
+
+    def test_33_niente_timesheet_doppi_sullo_stesso_viaggio(self):
+        """Il checked ripetuto o incrociato con la rigenerazione non deve creare doppioni."""
+        viaggio = self._viaggio('TEST-DOPPIONI', _roma(2030, 8, 3, 8), _roma(2030, 8, 3, 12), stato=False,
+                                allievo=self.secondo_autista)
+        viaggio.checked()
+        timesheet = self.env['account.analytic.line'].search([('gtms_id', '=', viaggio.id)])
+        self.assertEqual(len(timesheet), 2)
+
+        viaggio.check = False
+        viaggio.checked()
+        viaggio.regenerate_hours_to_timesheet()
+
+        self.assertEqual(len(self.env['account.analytic.line'].search([('gtms_id', '=', viaggio.id)])), 2,
+                         "le ore restano una per dipendente")
+
+    def test_34_messaggio_chiaro_sui_timesheet_doppi(self):
+        primo = self._timesheet(_roma(2030, 8, 3, 8), _roma(2030, 8, 3, 12))
+        doppione = self._timesheet(_roma(2030, 8, 3, 8), _roma(2030, 8, 3, 12), viaggio=primo.gtms_id)
+
+        errori = (primo | doppione)._gestisci_sovrapposizioni()
+
+        self.assertEqual(len(errori), 1)
+        self.assertIn("due timesheet doppi", errori[0][1])
+        self.assertIn(f"id {primo.id} e {doppione.id}", errori[0][1])
 
     # ------------------------------------------------------------------
     # esterni (is_esterno sul contatto)
