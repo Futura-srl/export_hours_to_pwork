@@ -466,8 +466,7 @@ class PworkCaricamento(models.AbstractModel):
                 validi = contratti.filtered(lambda c: c.date_start <= giorno and (not c.date_end or c.date_end >= giorno))
                 if not validi:
                     continue
-                mezzanotte = datetime.combine(giorno, time.min)
-                if not any(b.valid_from and b.valid_from <= mezzanotte and (not b.valid_to or b.valid_to >= mezzanotte)
+                if not any(b.valid_from and b.valid_from <= giorno and (not b.valid_to or b.valid_to >= giorno)
                            for contratto in validi for b in badge_per_contratto[contratto.id]):
                     senza_badge.append(giorno)
             if senza_badge:
