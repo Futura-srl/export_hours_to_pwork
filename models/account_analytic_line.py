@@ -121,7 +121,8 @@ class AccountAnalyticLine(models.Model):
             _logger.info(f"Employee ID: {driver_id[0]['address_home_id'][0]}")
             driver_id = driver_id[0]['address_home_id'][0]
             # date = record.date
-            trips_open = self.env['gtms.trip'].search_read([('state', 'not in', ['checked', 'cancel']), ('current_driver_id.id', '=', driver_id), ('competence_date', '=', date)], ['id','competence_date','current_driver_id','state','name'])
+            # sudo: la giornata dell'autista va vista per intero, anche sui TMS non visibili al ROP (gtms_trip_type_visibility)
+            trips_open = self.env['gtms.trip'].sudo().search_read([('state', 'not in', ['checked', 'cancel']), ('current_driver_id.id', '=', driver_id), ('competence_date', '=', date)], ['id','competence_date','current_driver_id','state','name'])
             _logger.info("XXXXXXXXXXXXXXXXXX")
             _logger.info(trips_open)
             list_trips_open = ''

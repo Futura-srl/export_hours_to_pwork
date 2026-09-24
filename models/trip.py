@@ -117,7 +117,8 @@ class Trip(models.Model):
 
             # Cerco solo viaggi "checked" degli stessi driver che
             # hanno intervalli potenzialmente sovrapposti
-            other_trips = self.env['gtms.trip'].search([
+            # sudo: anche i viaggi dei TMS non visibili al ROP (gtms_trip_type_visibility)
+            other_trips = self.env['gtms.trip'].sudo().search([
                 ('id', '!=', record.id),
                 ('state', '=', 'checked'),
                 ('all_drivers_ids', 'in', record.all_drivers_ids.ids),
