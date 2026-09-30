@@ -381,7 +381,7 @@ class TestCaricamentoAutomatico(TransactionCase):
         contratto = self.env['hr.contract'].search([('employee_id', '=', dipendente.id)], limit=1)
         if not self.env['hr.badgespwork'].search([('contract_ids', '=', contratto.id)]):
             self.env['hr.badgespwork'].create({
-                'name': 'TEST-BADGE-%s' % dipendente.id, 'active': True,
+                'name': 'TB%08d' % dipendente.id, 'active': True,
                 'valid_from': datetime(2025, 1, 1), 'hr_id': dipendente.id,
                 'contract_ids': [(6, 0, contratto.ids)],
             })
@@ -455,7 +455,7 @@ class TestCaricamentoAutomatico(TransactionCase):
         self._viaggio('TEST-HR-4', _roma(2030, 8, 5, 8), _roma(2030, 8, 5, 12), autista=senza_contratto)
         # badge valido solo dal 04/08: il 03 resta scoperto
         self.env['hr.badgespwork'].create({
-            'name': 'TEST-BADGE-HR', 'active': True, 'valid_from': datetime(2030, 8, 4),
+            'name': 'TESTBADGHR', 'active': True, 'valid_from': datetime(2030, 8, 4),
             'hr_id': self.dipendente.id, 'contract_ids': [(6, 0, self.contratto.ids)],
         })
 
