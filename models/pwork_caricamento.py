@@ -263,10 +263,14 @@ class PworkCaricamento(models.AbstractModel):
     # ------------------------------------------------------------------
     @api.model
     def _invia_righe_automatiche(self):
-        """ Invia a Pwork le righe create dal caricamento automatico e mai inviate """
+        """ Invia a Pwork le righe create dal caricamento automatico e mai inviate, e ritenta quelle
+        ferme per badge mancante appena il badge c'e' """
         righe = self.env['account.analytic.line.pwork'].sudo().search(
-            [('invio_automatico', '=', True), ('pwork', '=', False), ('error_txt', '=', False)],
+            [('invio_automatico', '=', True), ('pwork', '=', False),
+             '|', ('error_txt', '=', False), ('error_txt', '=', 'Badge mancante')],
             order="datetime_start asc, id asc")
+        # senza badge non si ritenta: ogni giro registrerebbe un altro invio fallito
+        righe = righe.filtered(lambda riga: riga.error_txt != 'Badge mancante' or riga._badge_pwork())
         esito = {'da_inviare': len(righe), 'inviate': 0, 'errori': []}
         if not righe:
             return esito

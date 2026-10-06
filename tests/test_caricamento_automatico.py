@@ -68,7 +68,8 @@ class TestCaricamentoAutomatico(TransactionCase):
         cls.veicolo = cls.env['fleet.vehicle'].search([], limit=1)
         # righe automatiche gia' presenti nel database (es. prove a mano): fuori dai test di invio
         cls.env['account.analytic.line.pwork'].search(
-            [('invio_automatico', '=', True), ('pwork', '=', False), ('error_txt', '=', False)]).write({'invio_automatico': False})
+            [('invio_automatico', '=', True), ('pwork', '=', False),
+             '|', ('error_txt', '=', False), ('error_txt', '=', 'Badge mancante')]).write({'invio_automatico': False})
 
         cls.autista, cls.dipendente, cls.contratto = cls._crea_autista('Uno', 'Caricamento')
         cls.secondo_autista, cls.secondo_dipendente, _contratto = cls._crea_autista('Due', 'Caricamento')
@@ -442,6 +443,29 @@ class TestCaricamentoAutomatico(TransactionCase):
                 patch.object(type(self.env['res.config.settings']), 'get_token_from_pwork', return_value=None):
             self.caricamento._invia_righe_automatiche()
         invio.assert_not_called()
+
+    def test_54_il_cron_ritenta_il_badge_mancante_quando_il_badge_c_e(self):
+        self._prepara_invio()
+        riga = self._riga_con_badge()
+        badge = self.env['hr.badgespwork'].search([('hr_id', '=', self.dipendente.id)])
+        badge.active = False
+        risposta = (True, {'ckResponse': {'Esito': 2}}, False, 'payload di test')
+        with patch.object(type(riga), 'send_timesheet', return_value=risposta) as invio, \
+                patch.object(type(self.env['res.config.settings']), 'get_token_from_pwork', return_value=None):
+            self.caricamento._invia_righe_automatiche()
+            self.assertEqual(riga.error_txt, 'Badge mancante')
+            self.assertEqual(len(riga.invio_ids), 1)
+
+            # badge ancora mancante: il giro dopo non ritenta e non registra altri invii
+            self.caricamento._invia_righe_automatiche()
+            self.assertEqual(len(riga.invio_ids), 1)
+
+            badge.active = True
+            esito = self.caricamento._invia_righe_automatiche()
+        self.assertEqual(invio.call_count, 1)
+        self.assertEqual(esito['inviate'], 1)
+        self.assertTrue(riga.pwork)
+        self.assertEqual(len(riga.invio_ids), 2)
 
     # ------------------------------------------------------------------
     # controllo HR e mail

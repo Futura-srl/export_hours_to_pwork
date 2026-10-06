@@ -74,14 +74,34 @@ class AccountAnalyticLine(models.Model):
         if not getattr(threading.current_thread(), 'testing', False):
             self.env.cr.commit()
 
+    def _badge_pwork(self):
+        """ Badge con cui la riga va inviata a Pwork, False se manca """
+        self.ensure_one()
+        badges = []
+        # Controllo se devo utilizzare il metodo vecchio oppure se usare la modalita HR1
+        switch_hr1 = self.env['ir.config_parameter'].sudo().get_param('switch_hr1')
+        if switch_hr1 == False:
+            # Recupero il badge del dipendente
+            badges = self.env['hr.badgespwork'].search_read([('active', '=', True), ('hr_id', '=', self.employee_id.id)],limit=1)
+        else:
+        #######
+        ####### PARTE HR1 PER RECUPERO BADGE CORRETTO
+        # Cerco il contratto attivo del dipendente nella data
+            contract = self.env['hr.contract'].search([('employee_id', '=', self.employee_id.id), ('date_start', '<=', self.datetime_start.date()), '|', ('date_end', '>=', self.datetime_start.date()), ('date_end', '=', False)], limit=1)
+            if contract:
+                badges = self.env['hr.badgespwork'].search([('contract_ids', '=', contract.id),('active', '=', True), ('valid_from', '<=', self.datetime_start.date()), '|', ('valid_to', '>=', self.datetime_start.date()), ('valid_to', '=', False)], limit=1)
+        ######
+        ######
+        if not badges or not badges[0]['name']:
+            return False
+        return badges[0]
+
     def upload_to_pwork(self):
         # Le copie del database (locale, staging) sono neutralizzate: da li' non si invia nulla a Pwork
         if self.env['ir.config_parameter'].sudo().get_param('database.is_neutralized'):
             raise UserError(_("Database neutralizzato (copia di test): l'invio a Pwork è bloccato."))
         tz = pytz.timezone('Europe/Rome')  # E.g., 'Europe/Rome'
         for record in self:
-            badges = []
-            badge = []
             # if record.validated_status == 'processing' or record.validated_status == 'error':
             data_e = record.datetime_start.astimezone(tz).strftime("%d/%m/%Y")
             ore_e = record.datetime_start.astimezone(tz).strftime("%H")
@@ -93,23 +113,8 @@ class AccountAnalyticLine(models.Model):
             secondi_u = record.datetime_stop.astimezone(tz).strftime("%S")
             causale_pwork = record.causale_gtms_pwork
 
-            # Controllo se devo utilizzare il metodo vecchio oppure se usare la modalita HR1
-            switch_hr1 = self.env['ir.config_parameter'].sudo().get_param('switch_hr1')
-            if switch_hr1 == False:
-                # Recupero il badge del dipendente
-                badges = self.env['hr.badgespwork'].search_read([('active', '=', True), ('hr_id', '=', record.employee_id.id)],limit=1)
-            else:
-            #######
-            ####### PARTE HR1 PER RECUPERO BADGE CORRETTO
-            # Cerco il contratto attivo del dipendente nella data
-                contract = self.env['hr.contract'].search([('employee_id', '=', record.employee_id.id), ('date_start', '<=', record.datetime_start.date()), '|', ('date_end', '>=', record.datetime_start.date()), ('date_end', '=', False)], limit=1)
-                if contract:
-                    badges = self.env['hr.badgespwork'].search([('contract_ids', '=', contract.id),('active', '=', True), ('valid_from', '<=', record.datetime_start.date()), '|', ('valid_to', '>=', record.datetime_start.date()), ('valid_to', '=', False)], limit=1)
-            ######
-            ######
-            for badge in badges:
-                _logger.info("Badge")
-            if not badges or badges == [] or badge['name'] == False:
+            badge = record._badge_pwork()
+            if not badge:
                 record.error_txt = "Badge mancante"
                 record._registra_invio(False, "Badge mancante")
                 continue
